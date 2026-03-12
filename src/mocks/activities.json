@@ -1,0 +1,1794 @@
+[
+  {
+    "id": 1,
+    "title": "Yoga Iniciación (BIZAN)",
+    "center": "bizan-arana",
+    "centerName": "BIZAN ARANA",
+    "centerType": "Centro Cívico",
+    "description": "Sesión de yoga para principiantes, enfocada en relajación y flexibilidad con técnicas de respiración",
+    "image": "yoga.jpg",
+    "sessions": [
+      {
+        "id": "1-1",
+        "date": "2026-02-01",
+        "startTime": "09:00",
+        "endTime": "10:00",
+        "dayOfWeek": "lunes",
+        "timeSlot": "manana",
+        "schedule": "lunes 09:00-10:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 16
+      },
+      {
+        "id": "1-2",
+        "date": "2026-02-05",
+        "startTime": "18:00",
+        "endTime": "19:00",
+        "dayOfWeek": "viernes",
+        "timeSlot": "tarde",
+        "schedule": "viernes 18:00-19:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 10,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Ajedrez Iniciación (BIZAN)",
+    "center": "bizan-sansomendi",
+    "centerName": "BIZAN SANSOMENDI",
+    "centerType": "Centro Cívico",
+    "description": "Aprende ajedrez desde cero, movimientos básicos, tácticas y estrategia",
+    "image": "ajedrez.jpg",
+    "sessions": [
+      {
+        "id": "2-1",
+        "date": "2026-02-01",
+        "startTime": "15:00",
+        "endTime": "16:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 15:00-16:30",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 14 },
+        "availableSpots": 12,
+        "totalSpots": 18
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Dibujo y Pintura (infantil)",
+    "center": "cc-lakua",
+    "centerName": "C.C. LAKUA",
+    "centerType": "Centro Cívico",
+    "description": "Expresión artística a través del dibujo y la pintura para niños",
+    "image": "pintura_infantil.jpg",
+    "sessions": [
+      {
+        "id": "3-1",
+        "date": "2026-02-03",
+        "startTime": "16:30",
+        "endTime": "18:00",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 16:30-18:00",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 4, "max": 10 },
+        "availableSpots": 5,
+        "totalSpots": 14
+      },
+      {
+        "id": "3-2",
+        "date": "2026-02-06",
+        "startTime": "16:30",
+        "endTime": "18:00",
+        "dayOfWeek": "viernes",
+        "timeSlot": "tarde",
+        "schedule": "viernes 16:30-18:00",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 4, "max": 10 },
+        "availableSpots": 11,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Inglés Nivel 1 (BIZAN)",
+    "center": "bizan-el-pilar",
+    "centerName": "BIZAN EL PILAR",
+    "centerType": "Centro Cívico",
+    "description": "Curso de inglés básico (A1) para principiantes, vocabulario y expresiones cotidianas",
+    "image": "ingles.jpg",
+    "sessions": [
+      {
+        "id": "4-1",
+        "date": "2026-02-02",
+        "startTime": "19:00",
+        "endTime": "20:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "noche",
+        "schedule": "lunes 19:00-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Inglés",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 6,
+        "totalSpots": 12
+      },
+      {
+        "id": "4-2",
+        "date": "2026-02-04",
+        "startTime": "19:00",
+        "endTime": "20:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "noche",
+        "schedule": "miércoles 19:00-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Inglés",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 9,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Cerámica Modelado (BIZAN)",
+    "center": "cc-arana",
+    "centerName": "C.C. ARANA",
+    "centerType": "Centro Cívico",
+    "description": "Iniciación a la escultura y modelado con cerámica, técnicas de modelado básico",
+    "image": "ceramica.jpg",
+    "sessions": [
+      {
+        "id": "5-1",
+        "date": "2026-02-01",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 16, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 10
+      },
+      {
+        "id": "5-2",
+        "date": "2026-02-08",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 16, "max": 99 },
+        "availableSpots": 7,
+        "totalSpots": 10
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Talla de Madera Nivel 1 (BIZAN)",
+    "center": "cc-hegoalde",
+    "centerName": "C.C. HEGOALDE",
+    "centerType": "Centro Cívico",
+    "description": "Aprende técnicas básicas de talla en madera, herramientas y proyectos iniciales",
+    "image": "talla_madera.jpg",
+    "sessions": [
+      {
+        "id": "6-1",
+        "date": "2026-02-02",
+        "startTime": "16:00",
+        "endTime": "17:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 16:00-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 3,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Ganchillo Iniciación (BIZAN)",
+    "center": "cc-iparralde",
+    "centerName": "C.C. IPARRALDE",
+    "centerType": "Centro Cívico",
+    "description": "Aprende ganchillo desde cero, puntadas básicas y proyectos sencillos",
+    "image": "ganchillo.jpg",
+    "sessions": [
+      {
+        "id": "7-1",
+        "date": "2026-02-03",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 15
+      },
+      {
+        "id": "7-2",
+        "date": "2026-02-05",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 12,
+        "totalSpots": 15
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Cocina Saludable (BIZAN)",
+    "center": "cc-ibaiondo",
+    "centerName": "C.C. IBAIONDO",
+    "centerType": "Centro Cívico",
+    "description": "Aprende recetas saludables y nutritivas para el día a día",
+    "image": "cocina.jpg",
+    "sessions": [
+      {
+        "id": "8-1",
+        "date": "2026-02-04",
+        "startTime": "17:30",
+        "endTime": "19:00",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 17:30-19:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 4,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Informática Básica (BIZAN)",
+    "center": "cc-arriaga",
+    "centerName": "C.C. ARRIAGA",
+    "centerType": "Centro Cívico",
+    "description": "Aprende informática básica: uso del PC, internet, correo electrónico",
+    "image": "informatica.jpg",
+    "sessions": [
+      {
+        "id": "9-1",
+        "date": "2026-02-01",
+        "startTime": "10:00",
+        "endTime": "11:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "manana",
+        "schedule": "martes 10:00-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 5,
+        "totalSpots": 10
+      },
+      {
+        "id": "9-2",
+        "date": "2026-02-08",
+        "startTime": "10:00",
+        "endTime": "11:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "manana",
+        "schedule": "martes 10:00-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 10
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Pilates (BIZAN)",
+    "center": "cc-abetxuko",
+    "centerName": "C.C. ABETXUKO",
+    "centerType": "Centro Cívico",
+    "description": "Ejercicios de pilates para fortalecimiento y flexibilidad",
+    "image": "pilates.jpg",
+    "sessions": [
+      {
+        "id": "10-1",
+        "date": "2026-02-02",
+        "startTime": "09:00",
+        "endTime": "10:00",
+        "dayOfWeek": "lunes",
+        "timeSlot": "manana",
+        "schedule": "lunes 09:00-10:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 75 },
+        "availableSpots": 10,
+        "totalSpots": 16
+      },
+      {
+        "id": "10-2",
+        "date": "2026-02-04",
+        "startTime": "09:00",
+        "endTime": "10:00",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "manana",
+        "schedule": "miércoles 09:00-10:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 75 },
+        "availableSpots": 7,
+        "totalSpots": 16
+      },
+      {
+        "id": "10-3",
+        "date": "2026-02-06",
+        "startTime": "09:00",
+        "endTime": "10:00",
+        "dayOfWeek": "viernes",
+        "timeSlot": "manana",
+        "schedule": "viernes 09:00-10:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 75 },
+        "availableSpots": 13,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Tai-Chi (abierto)",
+    "center": "cc-aldabe",
+    "centerName": "C.C. ALDABE",
+    "centerType": "Centro Cívico",
+    "description": "Práctica de tai-chi para mejorar equilibrio, flexibilidad y bienestar",
+    "image": "taichi.jpg",
+    "sessions": [
+      {
+        "id": "11-1",
+        "date": "2026-02-03",
+        "startTime": "10:00",
+        "endTime": "11:00",
+        "dayOfWeek": "lunes",
+        "timeSlot": "manana",
+        "schedule": "lunes 10:00-11:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 50, "max": 99 },
+        "availableSpots": 9,
+        "totalSpots": 14
+      },
+      {
+        "id": "11-2",
+        "date": "2026-02-05",
+        "startTime": "10:00",
+        "endTime": "11:00",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "manana",
+        "schedule": "miércoles 10:00-11:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 50, "max": 99 },
+        "availableSpots": 11,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Natación Bebés",
+    "center": "cc-salburua",
+    "centerName": "C.C. SALBURUA",
+    "centerType": "Centro Cívico",
+    "description": "Familiarización con el agua para bebés con acompañante",
+    "image": "natacion_bebes.jpg",
+    "sessions": [
+      {
+        "id": "12-1",
+        "date": "2026-02-01",
+        "startTime": "10:30",
+        "endTime": "11:15",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 10:30-11:15",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 0, "max": 3 },
+        "availableSpots": 6,
+        "totalSpots": 10
+      },
+      {
+        "id": "12-2",
+        "date": "2026-02-08",
+        "startTime": "10:30",
+        "endTime": "11:15",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 10:30-11:15",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 0, "max": 3 },
+        "availableSpots": 8,
+        "totalSpots": 10
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "title": "Biodanza",
+    "center": "bizan-coronacion",
+    "centerName": "BIZAN CORONACIÓN",
+    "centerType": "Centro Cívico",
+    "description": "Danza movimiento para la integración personal y bienestar emocional",
+    "image": "biodanza.jpg",
+    "sessions": [
+      {
+        "id": "13-1",
+        "date": "2026-02-02",
+        "startTime": "18:00",
+        "endTime": "19:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 18:00-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 12,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "title": "Escritura Creativa (BIZAN)",
+    "center": "cc-el-campillo",
+    "centerName": "C.C. EL CAMPILLO",
+    "centerType": "Centro Cívico",
+    "description": "Taller para desarrollar tu creatividad a través de la escritura",
+    "image": "escritura.jpg",
+    "sessions": [
+      {
+        "id": "14-1",
+        "date": "2026-02-03",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "title": "Club de Lectura Con Tintas Feministas",
+    "center": "cc-zabalgana",
+    "centerName": "C.C. ZABALGANA",
+    "centerType": "Centro Cívico",
+    "description": "Espacio de lectura y debate sobre literatura desde perspectiva feminista",
+    "image": "club_lectura.jpg",
+    "sessions": [
+      {
+        "id": "15-1",
+        "date": "2026-02-06",
+        "startTime": "18:00",
+        "endTime": "19:30",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 18:00-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 15,
+        "totalSpots": 18
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "title": "Bailes de Salón Nivel 1 (BIZAN)",
+    "center": "bizan-landazuri",
+    "centerName": "BIZAN LANDAZURI",
+    "centerType": "Centro Cívico",
+    "description": "Aprende los pasos básicos de bailes de salón: waltz, tango, foxtrot",
+    "image": "bailes_salon.jpg",
+    "sessions": [
+      {
+        "id": "16-1",
+        "date": "2026-02-04",
+        "startTime": "19:00",
+        "endTime": "20:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "noche",
+        "schedule": "martes 19:00-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 4,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "title": "Fotografía Digital Avanzada (BIZAN)",
+    "center": "cc-el-pilar",
+    "centerName": "C.C. EL PILAR",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas avanzadas de fotografía digital, composición, iluminación y edición",
+    "image": "fotografia.jpg",
+    "sessions": [
+      {
+        "id": "17-1",
+        "date": "2026-02-05",
+        "startTime": "18:00",
+        "endTime": "19:30",
+        "dayOfWeek": "viernes",
+        "timeSlot": "tarde",
+        "schedule": "viernes 18:00-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 10,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "title": "Ornitología para Principiantes (BIZAN)",
+    "center": "bizan-san-cristobal",
+    "centerName": "BIZAN SAN CRISTÓBAL",
+    "centerType": "Centro Cívico",
+    "description": "Aprende a identificar aves de tu entorno y sus comportamientos",
+    "image": "ornitologia.jpg",
+    "sessions": [
+      {
+        "id": "18-1",
+        "date": "2026-02-08",
+        "startTime": "10:00",
+        "endTime": "11:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 10:00-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 18,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "title": "Atrévete a Bailar",
+    "center": "cc-ariznabarra",
+    "centerName": "C.C. ARIZNABARRA",
+    "centerType": "Centro Cívico",
+    "description": "Expresión a través del movimiento y la danza para todos los niveles",
+    "image": "expresion_baile.jpg",
+    "sessions": [
+      {
+        "id": "19-1",
+        "date": "2026-02-06",
+        "startTime": "17:00",
+        "endTime": "18:00",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 17:00-18:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 65 },
+        "availableSpots": 20,
+        "totalSpots": 25
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "title": "Patchwork (BIZAN)",
+    "center": "bizan-aranbizkarra",
+    "centerName": "BIZAN ARANBIZKARRA",
+    "centerType": "Centro Cívico",
+    "description": "Técnica de costura para crear proyectos con retazos de tela",
+    "image": "patchwork.jpg",
+    "sessions": [
+      {
+        "id": "20-1",
+        "date": "2026-02-02",
+        "startTime": "15:00",
+        "endTime": "16:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 15:00-16:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 2,
+        "totalSpots": 10
+      },
+      {
+        "id": "20-2",
+        "date": "2026-02-09",
+        "startTime": "15:00",
+        "endTime": "16:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 15:00-16:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 10
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "title": "Chi-Kung, Qi Gong (BIZAN)",
+    "center": "bizan-judimendi",
+    "centerName": "BIZAN JUDIMENDI",
+    "centerType": "Centro Cívico",
+    "description": "Práctica energética china para mejorar salud y vitalidad",
+    "image": "qigong.jpg",
+    "sessions": [
+      {
+        "id": "21-1",
+        "date": "2026-02-01",
+        "startTime": "11:00",
+        "endTime": "12:00",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "manana",
+        "schedule": "miércoles 11:00-12:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 40, "max": 99 },
+        "availableSpots": 14,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "title": "Aprende a Manejar tu Teléfono Móvil Android (BIZAN)",
+    "center": "bizan-arana",
+    "centerName": "BIZAN ARANA",
+    "centerType": "Centro Cívico",
+    "description": "Curso para aprender a usar smartphone Android básicamente",
+    "image": "smartphone.jpg",
+    "sessions": [
+      {
+        "id": "22-1",
+        "date": "2026-02-04",
+        "startTime": "10:00",
+        "endTime": "11:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "manana",
+        "schedule": "martes 10:00-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 6,
+        "totalSpots": 12
+      },
+      {
+        "id": "22-2",
+        "date": "2026-02-11",
+        "startTime": "10:00",
+        "endTime": "11:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "manana",
+        "schedule": "martes 10:00-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 11,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "title": "Meditación (BIZAN)",
+    "center": "cc-lakua",
+    "centerName": "C.C. LAKUA",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas de meditación para reducir estrés y mejorar bienestar mental",
+    "image": "meditacion.jpg",
+    "sessions": [
+      {
+        "id": "23-1",
+        "date": "2026-02-03",
+        "startTime": "19:00",
+        "endTime": "20:00",
+        "dayOfWeek": "lunes",
+        "timeSlot": "noche",
+        "schedule": "lunes 19:00-20:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 16,
+        "totalSpots": 20
+      },
+      {
+        "id": "23-2",
+        "date": "2026-02-05",
+        "startTime": "19:00",
+        "endTime": "20:00",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "noche",
+        "schedule": "miércoles 19:00-20:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 19,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "title": "Tenis (infantil)",
+    "center": "pol-abetxuko",
+    "centerName": "POL. ABETXUKO",
+    "centerType": "Polideportivo",
+    "description": "Entrenamiento de tenis para niños, técnica básica y juego",
+    "image": "tenis.jpg",
+    "sessions": [
+      {
+        "id": "24-1",
+        "date": "2026-02-07",
+        "startTime": "16:00",
+        "endTime": "17:00",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 16:00-17:00",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 12 },
+        "availableSpots": 8,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "title": "Pádel (jóvenes)",
+    "center": "pol-aranalde",
+    "centerName": "POL. ARANALDE",
+    "centerType": "Polideportivo",
+    "description": "Entrenamiento de pádel para jóvenes, técnica y partidos",
+    "image": "padel.jpg",
+    "sessions": [
+      {
+        "id": "25-1",
+        "date": "2026-02-08",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Juvenil",
+        "language": "Español",
+        "age": { "min": 14, "max": 25 },
+        "availableSpots": 6,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "title": "Bádminton (abierto)",
+    "center": "pol-arriaga",
+    "centerName": "POL. ARRIAGA",
+    "centerType": "Polideportivo",
+    "description": "Entrenamiento de bádminton para todos los niveles",
+    "image": "badminton.jpg",
+    "sessions": [
+      {
+        "id": "26-1",
+        "date": "2026-02-06",
+        "startTime": "19:00",
+        "endTime": "20:00",
+        "dayOfWeek": "viernes",
+        "timeSlot": "noche",
+        "schedule": "viernes 19:00-20:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 14, "max": 99 },
+        "availableSpots": 12,
+        "totalSpots": 18
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "title": "Canto Moderno",
+    "center": "cc-arana",
+    "centerName": "C.C. ARANA",
+    "centerType": "Centro Cívico",
+    "description": "Clases de canto para desarrollo de la voz y técnica vocal moderna",
+    "image": "canto.jpg",
+    "sessions": [
+      {
+        "id": "27-1",
+        "date": "2026-02-02",
+        "startTime": "17:00",
+        "endTime": "18:00",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 17:00-18:00",
+        "format": "Presencial",
+        "audience": "Juvenil",
+        "language": "Español",
+        "age": { "min": 14, "max": 30 },
+        "availableSpots": 10,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "title": "Guitarra (infantil)",
+    "center": "cc-hegoalde",
+    "centerName": "C.C. HEGOALDE",
+    "centerType": "Centro Cívico",
+    "description": "Clases de guitarra para niños, acordes y canciones",
+    "image": "guitarra_infantil.jpg",
+    "sessions": [
+      {
+        "id": "28-1",
+        "date": "2026-02-03",
+        "startTime": "16:00",
+        "endTime": "16:45",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 16:00-16:45",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 12 },
+        "availableSpots": 7,
+        "totalSpots": 12
+      },
+      {
+        "id": "28-2",
+        "date": "2026-02-05",
+        "startTime": "16:00",
+        "endTime": "16:45",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 16:00-16:45",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 12 },
+        "availableSpots": 9,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "title": "Cajón Flamenco",
+    "center": "cc-iparralde",
+    "centerName": "C.C. IPARRALDE",
+    "centerType": "Centro Cívico",
+    "description": "Aprende a tocar cajón flamenco y ritmos flamencos",
+    "image": "cajon.jpg",
+    "sessions": [
+      {
+        "id": "29-1",
+        "date": "2026-02-04",
+        "startTime": "18:00",
+        "endTime": "19:00",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 18:00-19:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 65 },
+        "availableSpots": 14,
+        "totalSpots": 18
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "title": "Bolillos (BIZAN)",
+    "center": "cc-ibaiondo",
+    "centerName": "C.C. IBAIONDO",
+    "centerType": "Centro Cívico",
+    "description": "Técnica tradicional de encaje con bolillos",
+    "image": "bolillos.jpg",
+    "sessions": [
+      {
+        "id": "30-1",
+        "date": "2026-02-06",
+        "startTime": "16:00",
+        "endTime": "17:30",
+        "dayOfWeek": "viernes",
+        "timeSlot": "tarde",
+        "schedule": "viernes 16:00-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 6,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "title": "Estimulación Cognitiva (BIZAN)",
+    "center": "cc-arriaga",
+    "centerName": "C.C. ARRIAGA",
+    "centerType": "Centro Cívico",
+    "description": "Actividades para mantener y mejorar la función cognitiva en mayores",
+    "image": "cognitiva.jpg",
+    "sessions": [
+      {
+        "id": "31-1",
+        "date": "2026-02-02",
+        "startTime": "10:30",
+        "endTime": "11:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "manana",
+        "schedule": "lunes 10:30-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 65, "max": 99 },
+        "availableSpots": 16,
+        "totalSpots": 22
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "title": "Gestión Emocional (BIZAN)",
+    "center": "cc-abetxuko",
+    "centerName": "C.C. ABETXUKO",
+    "centerType": "Centro Cívico",
+    "description": "Herramientas para reconocer y gestionar emociones",
+    "image": "emociones.jpg",
+    "sessions": [
+      {
+        "id": "32-1",
+        "date": "2026-02-05",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 18,
+        "totalSpots": 24
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "title": "Euskara para Mayores de 55 años, 1º año",
+    "center": "cc-aldabe",
+    "centerName": "C.C. ALDABE",
+    "centerType": "Centro Cívico",
+    "description": "Curso de euskera (idioma vasco) para adultos mayores nivel inicial",
+    "image": "euskera.jpg",
+    "sessions": [
+      {
+        "id": "33-1",
+        "date": "2026-02-03",
+        "startTime": "18:00",
+        "endTime": "19:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 18:00-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Euskera",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 11,
+        "totalSpots": 20
+      },
+      {
+        "id": "33-2",
+        "date": "2026-02-05",
+        "startTime": "18:00",
+        "endTime": "19:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 18:00-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Euskera",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 15,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "title": "Bisutería Creativa",
+    "center": "cc-salburua",
+    "centerName": "C.C. SALBURUA",
+    "centerType": "Centro Cívico",
+    "description": "Crea tus propias joyas y accesorios",
+    "image": "bisuteria.jpg",
+    "sessions": [
+      {
+        "id": "34-1",
+        "date": "2026-02-08",
+        "startTime": "15:00",
+        "endTime": "16:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 15:00-16:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 14, "max": 99 },
+        "availableSpots": 10,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "title": "Cómo Mejorar la Memoria",
+    "center": "bizan-coronacion",
+    "centerName": "BIZAN CORONACIÓN",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas y ejercicios para mejorar la memoria y concentración",
+    "image": "memoria.jpg",
+    "sessions": [
+      {
+        "id": "35-1",
+        "date": "2026-02-04",
+        "startTime": "11:00",
+        "endTime": "12:00",
+        "dayOfWeek": "jueves",
+        "timeSlot": "manana",
+        "schedule": "jueves 11:00-12:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 55, "max": 99 },
+        "availableSpots": 18,
+        "totalSpots": 24
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "title": "Primeros Auxilios Pediátricos",
+    "center": "cc-el-campillo",
+    "centerName": "C.C. EL CAMPILLO",
+    "centerType": "Centro Cívico",
+    "description": "Curso de primeros auxilios adaptado a accidentes pediátricos",
+    "image": "primeros_auxilios.jpg",
+    "sessions": [
+      {
+        "id": "36-1",
+        "date": "2026-02-08",
+        "startTime": "09:30",
+        "endTime": "11:00",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 09:30-11:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 4,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "title": "Marcha Nórdica (BIZAN)",
+    "center": "cc-zabalgana",
+    "centerName": "C.C. ZABALGANA",
+    "centerType": "Centro Cívico",
+    "description": "Actividad al aire libre con técnica de caminata nórdica",
+    "image": "marcha_nordica.jpg",
+    "sessions": [
+      {
+        "id": "37-1",
+        "date": "2026-02-07",
+        "startTime": "09:00",
+        "endTime": "10:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 09:00-10:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 40, "max": 99 },
+        "availableSpots": 20,
+        "totalSpots": 30
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "title": "Senderismo por el Desfiladero del Río Ayuda",
+    "center": "bizan-landazuri",
+    "centerName": "BIZAN LANDAZURI",
+    "centerType": "Centro Cívico",
+    "description": "Ruta de senderismo guiada por paisajes naturales",
+    "image": "senderismo.jpg",
+    "sessions": [
+      {
+        "id": "38-1",
+        "date": "2026-02-15",
+        "startTime": "08:00",
+        "endTime": "13:00",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 08:00-13:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 75 },
+        "availableSpots": 25,
+        "totalSpots": 35
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "title": "Masaje y Relajación Terapéutica",
+    "center": "cc-el-pilar",
+    "centerName": "C.C. EL PILAR",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas de masaje y relajación para alivio de tensiones",
+    "image": "masaje.jpg",
+    "sessions": [
+      {
+        "id": "39-1",
+        "date": "2026-02-06",
+        "startTime": "17:30",
+        "endTime": "18:30",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 17:30-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 8,
+        "totalSpots": 12
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "title": "Danzas Vascas en Familia",
+    "center": "bizan-san-cristobal",
+    "centerName": "BIZAN SAN CRISTÓBAL",
+    "centerType": "Centro Cívico",
+    "description": "Aprendizaje de danzas tradicionales vascas para toda la familia",
+    "image": "danzas_vascas.jpg",
+    "sessions": [
+      {
+        "id": "40-1",
+        "date": "2026-02-02",
+        "startTime": "16:00",
+        "endTime": "17:00",
+        "dayOfWeek": "domingo",
+        "timeSlot": "tarde",
+        "schedule": "domingo 16:00-17:00",
+        "format": "Presencial",
+        "audience": "Familias",
+        "language": "Español",
+        "age": { "min": 4, "max": 99 },
+        "availableSpots": 22,
+        "totalSpots": 30
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "title": "Dibujo-Acuarela (infantil)",
+    "center": "cc-ariznabarra",
+    "centerName": "C.C. ARIZNABARRA",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas de dibujo y acuarela para niños",
+    "image": "acuarela_infantil.jpg",
+    "sessions": [
+      {
+        "id": "41-1",
+        "date": "2026-02-03",
+        "startTime": "15:30",
+        "endTime": "17:00",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 15:30-17:00",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 4, "max": 12 },
+        "availableSpots": 9,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 42,
+    "title": "Teatro (infantil)",
+    "center": "bizan-aranbizkarra",
+    "centerName": "BIZAN ARANBIZKARRA",
+    "centerType": "Centro Cívico",
+    "description": "Taller de teatro y expresión dramática para niños",
+    "image": "teatro_infantil.jpg",
+    "sessions": [
+      {
+        "id": "42-1",
+        "date": "2026-02-05",
+        "startTime": "16:00",
+        "endTime": "17:15",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 16:00-17:15",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 14 },
+        "availableSpots": 11,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "title": "Circo (infantil)",
+    "center": "bizan-judimendi",
+    "centerName": "BIZAN JUDIMENDI",
+    "centerType": "Centro Cívico",
+    "description": "Actividades circenses: acrobacias, malabares, equilibrio",
+    "image": "circo.jpg",
+    "sessions": [
+      {
+        "id": "43-1",
+        "date": "2026-02-04",
+        "startTime": "16:30",
+        "endTime": "17:45",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 16:30-17:45",
+        "format": "Presencial",
+        "audience": "Infantil",
+        "language": "Español",
+        "age": { "min": 6, "max": 12 },
+        "availableSpots": 14,
+        "totalSpots": 18
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "title": "Ilustración",
+    "center": "cc-arana",
+    "centerName": "C.C. ARANA",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas de ilustración digital y tradicional",
+    "image": "ilustracion.jpg",
+    "sessions": [
+      {
+        "id": "44-1",
+        "date": "2026-02-07",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 16, "max": 99 },
+        "availableSpots": 12,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "title": "Running Iniciación (abierto)",
+    "center": "pol-aranalde",
+    "centerName": "POL. ARANALDE",
+    "centerType": "Polideportivo",
+    "description": "Curso para iniciarse en correr, técnica y entrenamiento",
+    "image": "running.jpg",
+    "sessions": [
+      {
+        "id": "45-1",
+        "date": "2026-02-06",
+        "startTime": "18:00",
+        "endTime": "19:00",
+        "dayOfWeek": "jueves",
+        "timeSlot": "tarde",
+        "schedule": "jueves 18:00-19:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 65 },
+        "availableSpots": 24,
+        "totalSpots": 30
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "title": "Defensa Personal para Chicas",
+    "center": "cc-hegoalde",
+    "centerName": "C.C. HEGOALDE",
+    "centerType": "Centro Cívico",
+    "description": "Técnicas de defensa personal adaptadas para mujeres jóvenes",
+    "image": "defensa_personal.jpg",
+    "sessions": [
+      {
+        "id": "46-1",
+        "date": "2026-02-08",
+        "startTime": "17:00",
+        "endTime": "18:00",
+        "dayOfWeek": "sábado",
+        "timeSlot": "tarde",
+        "schedule": "sábado 17:00-18:00",
+        "format": "Presencial",
+        "audience": "Juvenil",
+        "language": "Español",
+        "age": { "min": 14, "max": 25 },
+        "availableSpots": 16,
+        "totalSpots": 20
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "title": "Geocaching Familiar",
+    "center": "cc-iparralde",
+    "centerName": "C.C. IPARRALDE",
+    "centerType": "Centro Cívico",
+    "description": "Búsqueda de tesoros con GPS, actividad al aire libre en familia",
+    "image": "geocaching.jpg",
+    "sessions": [
+      {
+        "id": "47-1",
+        "date": "2026-02-09",
+        "startTime": "10:00",
+        "endTime": "12:00",
+        "dayOfWeek": "domingo",
+        "timeSlot": "manana",
+        "schedule": "domingo 10:00-12:00",
+        "format": "Presencial",
+        "audience": "Familias",
+        "language": "Español",
+        "age": { "min": 6, "max": 99 },
+        "availableSpots": 18,
+        "totalSpots": 25
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "title": "Club de Lectura Orlando (Castellano)",
+    "center": "cc-ibaiondo",
+    "centerName": "C.C. IBAIONDO",
+    "centerType": "Centro Cívico",
+    "description": "Grupo de lectura y debate sobre literatura LGBTIQ+",
+    "image": "club_lectura_orlando.jpg",
+    "sessions": [
+      {
+        "id": "48-1",
+        "date": "2026-02-10",
+        "startTime": "17:00",
+        "endTime": "18:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 17:00-18:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 99 },
+        "availableSpots": 10,
+        "totalSpots": 14
+      }
+    ]
+  },
+  {
+    "id": 49,
+    "title": "Introducción a la Astronomía",
+    "center": "cc-arriaga",
+    "centerName": "C.C. ARRIAGA",
+    "centerType": "Centro Cívico",
+    "description": "Observación del cielo nocturno, constelaciones y planetas",
+    "image": "astronomia.jpg",
+    "sessions": [
+      {
+        "id": "49-1",
+        "date": "2026-02-14",
+        "startTime": "19:30",
+        "endTime": "21:00",
+        "dayOfWeek": "sábado",
+        "timeSlot": "noche",
+        "schedule": "sábado 19:30-21:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 10, "max": 99 },
+        "availableSpots": 20,
+        "totalSpots": 25
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "title": "Tenis de Mesa",
+    "center": "cc-abetxuko",
+    "centerName": "C.C. ABETXUKO",
+    "centerType": "Centro Cívico",
+    "description": "Entrenamiento y juego de tenis de mesa (ping-pong)",
+    "image": "tenis_mesa.jpg",
+    "sessions": [
+      {
+        "id": "50-1",
+        "date": "2026-02-06",
+        "startTime": "19:00",
+        "endTime": "20:00",
+        "dayOfWeek": "viernes",
+        "timeSlot": "noche",
+        "schedule": "viernes 19:00-20:00",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Español",
+        "age": { "min": 18, "max": 75 },
+        "availableSpots": 14,
+        "totalSpots": 16
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "title": "Pádel Abierto (C.D. MENDIZORROTZA)",
+    "center": "cd-mendizorrotza",
+    "centerName": "C.D. MENDIZORROTZA",
+    "centerType": "Polideportivo",
+    "description": "Entrenamientos de pádel abierto para todos los niveles. Temporadas regulares de entrenamiento con horarios variados adaptados a diferentes grupos de edad. Instalaciones de calidad profesional con pistas de pádel reglamentarias.",
+    "image": "padel.jpg",
+    "sessions": [
+      {
+        "id": "51-1",
+        "date": "2026-02-02",
+        "startTime": "16:30",
+        "endTime": "17:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 16:30-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-2",
+        "date": "2026-02-02",
+        "startTime": "18:30",
+        "endTime": "19:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "tarde",
+        "schedule": "lunes 18:30-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-3",
+        "date": "2026-02-02",
+        "startTime": "19:30",
+        "endTime": "20:30",
+        "dayOfWeek": "lunes",
+        "timeSlot": "noche",
+        "schedule": "lunes 19:30-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-4",
+        "date": "2026-02-03",
+        "startTime": "16:30",
+        "endTime": "17:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 16:30-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-5",
+        "date": "2026-02-03",
+        "startTime": "18:30",
+        "endTime": "19:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "tarde",
+        "schedule": "martes 18:30-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-6",
+        "date": "2026-02-03",
+        "startTime": "19:30",
+        "endTime": "20:30",
+        "dayOfWeek": "martes",
+        "timeSlot": "noche",
+        "schedule": "martes 19:30-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-7",
+        "date": "2026-02-04",
+        "startTime": "16:30",
+        "endTime": "17:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 16:30-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-8",
+        "date": "2026-02-04",
+        "startTime": "18:30",
+        "endTime": "19:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 18:30-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-9",
+        "date": "2026-02-04",
+        "startTime": "19:30",
+        "endTime": "20:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "noche",
+        "schedule": "miércoles 19:30-20:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-10",
+        "date": "2026-02-07",
+        "startTime": "10:30",
+        "endTime": "11:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 10:30-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-11",
+        "date": "2026-02-07",
+        "startTime": "11:30",
+        "endTime": "12:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 11:30-12:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-12",
+        "date": "2026-02-08",
+        "startTime": "10:30",
+        "endTime": "11:30",
+        "dayOfWeek": "domingo",
+        "timeSlot": "manana",
+        "schedule": "domingo 10:30-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-13",
+        "date": "2026-02-08",
+        "startTime": "11:30",
+        "endTime": "12:30",
+        "dayOfWeek": "domingo",
+        "timeSlot": "manana",
+        "schedule": "domingo 11:30-12:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 0,
+        "totalSpots": 8,
+        "season": "En curso"
+      },
+      {
+        "id": "51-14",
+        "date": "2026-04-01",
+        "startTime": "16:30",
+        "endTime": "17:30",
+        "dayOfWeek": "miércoles",
+        "timeSlot": "tarde",
+        "schedule": "miércoles 16:30-17:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 3,
+        "totalSpots": 8,
+        "season": "Previsto"
+      },
+      {
+        "id": "51-15",
+        "date": "2026-05-02",
+        "startTime": "10:30",
+        "endTime": "11:30",
+        "dayOfWeek": "sábado",
+        "timeSlot": "manana",
+        "schedule": "sábado 10:30-11:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 5,
+        "totalSpots": 8,
+        "season": "Previsto"
+      },
+      {
+        "id": "51-16",
+        "date": "2026-06-14",
+        "startTime": "18:30",
+        "endTime": "19:30",
+        "dayOfWeek": "domingo",
+        "timeSlot": "tarde",
+        "schedule": "domingo 18:30-19:30",
+        "format": "Presencial",
+        "audience": "Adulto",
+        "language": "Bilingüe",
+        "age": { "min": 12, "max": 99 },
+        "availableSpots": 6,
+        "totalSpots": 8,
+        "season": "Previsto"
+      }
+    ]
+  }
+]

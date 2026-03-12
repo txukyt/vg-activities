@@ -1,0 +1,161 @@
+/**
+ * ResultsRenderer.js
+ * Componente responsable de renderizar los resultados de búsqueda.
+ * - Sabe iterar sobre estructura agrupada por centro
+ * - Sabe iterar sobre estructura de lista plana
+ * Genera HTML semántico (headers de centro + listas)
+ */
+
+export class ResultsRenderer {
+  /**
+   * Renderiza los resultados según su modo de visualización.
+   * @param {Array|Object} results - Resultados (agrupados o lista plana)
+   * @param {string} viewMode - 'grouped' o 'list'
+   * @param {Function} onActivityClick - Callback cuando se hace click en una actividad
+   * @returns {HTMLElement} Contenedor con los resultados renderizados
+   */
+  static render(results, viewMode, onActivityClick) {
+    const container = document.createElement('section');
+    container.className = 'results-container';
+
+    if (viewMode === 'grouped') {
+      ResultsRenderer.#renderGroupedResults(container, results, onActivityClick);
+    } else {
+      ResultsRenderer.#renderListResults(container, results, onActivityClick);
+    }
+
+    return container;
+  }
+
+  /**
+   * Renderiza resultados AGRUPADOS por centro.
+   * Estructura: Array de { center: {...}, activities: [...] }
+   * @private
+   */
+  static #renderGroupedResults(container, groupedData, onActivityClick) {
+    if (!Array.isArray(groupedData) || groupedData.length === 0) {
+      container.innerHTML = `
+        <div class="no-results">
+          <p>No se encontraron resultados</p>
+        </div>
+      `;
+      return;
+    }
+
+// Iterar sobre cada grupo de centro
+  groupedData.forEach(group => {
+    const { center, activities } = group;
+
+    // Crear sección para el centro
+    const centerSection = document.createElement('article');
+    centerSection.className = 'center-group';
+    centerSection.setAttribute('data-center-id', center.id);
+
+    // Header del centro
+    const centerHeader = document.createElement('header');
+    centerHeader.className = 'center-header';
+    centerHeader.innerHTML = `
+      <h2 class="center-name">${this.#escapeHtml(center.name)}</h2>
+      <span class="center-count">${activities.length} actividad${activities.length !== 1 ? 'es' : ''}</span>
+    `;
+    centerSection.appendChild(centerHeader);
+
+    // Lista de actividades del centro
+    const activitiesList = document.createElement('ul');
+    activitiesList.className = 'activities-list grouped';
+
+    activities.forEach(activity => {
+      // Nota: En vista agrupada, cada activity es única
+      // Sus sesiones están en activity.sessions (internas, no se muestran)
+      const activityItem = this.#createActivityItem(activity, onActivityClick);
+      activitiesList.appendChild(activityItem);
+    });
+
+    centerSection.appendChild(activitiesList);
+    container.appendChild(centerSection);
+  });
+  }
+
+  /**
+   * Renderiza resultados como LISTA PLANA.
+   * @private
+   */
+  static #renderListResults(container, activities, onActivityClick) {
+    if (!Array.isArray(activities) || activities.length === 0) {
+      container.innerHTML = `
+        <div class="no-results">
+          <p>No se encontraron resultados</p>
+        </div>
+      `;
+      return;
+    }
+
+    const activitiesList = document.createElement('ul');
+    activitiesList.className = 'activities-list flat';
+
+    activities.forEach(activity => {
+      const activityItem = this.#createActivityItem(activity, onActivityClick);
+      activitiesList.appendChild(activityItem);
+    });
+
+    container.appendChild(activitiesList);
+  }
+
+  /**
+   * Crea un item de actividad (elemento <li>).
+   * @private
+   */
+  static #createActivityItem(activity, onActivityClick) {
+    const li = document.createElement('li');
+    li.className = 'activity-item';
+    li.setAttribute('data-activity-id', activity.id);
+
+    // Contenido de la actividad
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'activity-content';
+
+    // Título
+    const title = document.createElement('h3');
+    title.className = 'activity-title';
+    title.textContent = this.#escapeHtml(activity.title);
+
+    // Centro (si está en vista plana)
+    const centerInfo = document.createElement('p');
+    centerInfo.className = 'activity-center';
+    centerInfo.textContent = this.#escapeHtml(activity.centerName);
+
+    // Descripción
+    const description = document.createElement('p');
+    description.className = 'activity-description';
+    description.textContent = this.#escapeHtml(activity.description);
+
+    // Botón de horarios
+    const detailsButton = document.createElement('button');
+    detailsButton.className = 'btn btn-primary';
+    detailsButton.textContent = 'Ver horarios';
+    detailsButton.addEventListener('click', () => {
+      if (onActivityClick) {
+        onActivityClick(activity.id);
+      }
+    });
+
+    contentDiv.appendChild(title);
+    contentDiv.appendChild(centerInfo);
+    contentDiv.appendChild(description);
+    contentDiv.appendChild(detailsButton);
+
+    li.appendChild(contentDiv);
+
+    return li;
+  }
+
+  /**
+   * Escapa caracteres HTML para prevenir XSS.
+   * @private
+   */
+  static #escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
