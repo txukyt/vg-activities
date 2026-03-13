@@ -23,7 +23,8 @@ export class SearchComponent {
       this.selectedFiltersBar = null;
       this.intersectionObserver = null;  // Para infinite scroll
       this.previousFiltersJson = null;   // JSON string anterior para comparar
-    }
+      this.lastPerformedSearch = null;   // Rastrear última búsqueda para evitar duplicados
+   }
 
    /**
     * Actualiza la visibilidad del drawer de filtros.
@@ -188,8 +189,18 @@ export class SearchComponent {
       const filters = state.filters;
       const { offset, limit } = state.pagination;
       const currentFiltersJson = JSON.stringify(filters);
+      
+      // Crear identificador único de esta búsqueda
+      const currentSearchId = JSON.stringify({ filters, offset, isLoadingMore });
 
       console.log('[SearchComponent] #performSearch llamado. isLoadingMore:', isLoadingMore, 'offset:', offset, 'limit:', limit);
+
+      // CRÍTICO: Evitar búsquedas duplicate inmediatas
+      // Si la búsqueda actual es idéntica a la última, no ejecutar
+      if (this.lastPerformedSearch === currentSearchId) {
+        console.log('[SearchComponent] ⚠️ BÚSQUEDA DUPLICATE DETECTADA - IGNORANDO');
+        return;
+      }
 
       // Detectar si cambió el filtro
       const filtersChanged = this.previousFiltersJson &&
@@ -294,6 +305,10 @@ export class SearchComponent {
 
       // Guardar filtros actuales para próxima comparación
       this.previousFiltersJson = currentFiltersJson;
+      
+      // CRÍTICO: Guardar identificador de búsqueda realizada para evitar duplicados
+      this.lastPerformedSearch = currentSearchId;
+      console.log('[SearchComponent] ✓ Búsqueda ejecutada con ID:', currentSearchId.substring(0, 50) + '...');
       
       const newState = store.getState();
       console.log('[SearchComponent] Estado actualizado. pagination:', newState.pagination);

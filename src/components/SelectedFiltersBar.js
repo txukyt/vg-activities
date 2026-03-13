@@ -11,6 +11,7 @@ export class SelectedFiltersBar {
   constructor(onFilterChange) {
     this.onFilterChange = onFilterChange;
     this.activities = [];
+    this.centers = [];
     this.element = null;
   }
 
@@ -19,8 +20,9 @@ export class SelectedFiltersBar {
    * @returns {HTMLElement} Elemento de la barra
    */
   async render() {
-    // Obtener actividades del store para mapear IDs a nombres
+    // Obtener actividades y centros del store para mapear IDs a nombres
     this.activities = store.getActivities();
+    this.centers = store.getCenters();
 
     const container = document.createElement('div');
     container.className = 'selected-filters-bar';
@@ -90,8 +92,9 @@ export class SelectedFiltersBar {
 
     // Centro
     if (filters.center && filters.center.length > 0) {
+      // Crear mapa de IDs a nombres desde this.centers (del store)
       const centerMap = new Map(
-        FilterService.getCentersFlat(this.activities).map(c => [c.id, c.name])
+        this.centers.map(c => [c.id, c.name])
       );
       filters.center.forEach(centerId => {
         selected.push({
@@ -105,12 +108,16 @@ export class SelectedFiltersBar {
 
     // Actividad
     if (filters.activity && filters.activity.length > 0) {
-      filters.activity.forEach(activityName => {
+      // Crear mapa de IDs a nombres usando FilterService
+      const activityMap = new Map(
+        FilterService.getActivityNames(this.activities).map(a => [a.id, a.name])
+      );
+      filters.activity.forEach(activityId => {
         selected.push({
           type: 'activity',
           typeLabel: 'Actividad',
-          value: activityName,
-          label: activityName
+          value: activityId,
+          label: activityMap.get(activityId) || activityId
         });
       });
     }

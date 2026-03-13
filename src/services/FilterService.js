@@ -4,14 +4,11 @@
  * Incluye manipulación de opciones de filtro y visibilidad condicional.
  */
 
-import { MockGateway } from './MockGateway.js';
-
 export class FilterService {
    /**
      * Obtiene datos iniciales de la aplicación: centros, actividades y timestamp del servidor.
      * Primero verifica si existe window.__PRELOADED_STATE__ con datos válidos.
      * Si no, intenta consumir el endpoint REST /m01-10s/api/init.do
-     * Si falla, usa MockGateway como fallback.
      * @returns {Promise<Object>} { centers: Array, activities: Array, serverTimestamp: string }
      */
     static async getInitData() {
@@ -40,7 +37,7 @@ export class FilterService {
         const data = await response.json();
         return data;
       } catch (error) {
-        console.warn('Error consumiendo /m01-10s/api/init.do, usando MockGateway:', error);
+        console.warn('Error consumiendo /m01-10s/api/init.do', error);
       }
     }
 
@@ -165,15 +162,15 @@ export class FilterService {
       const seen = new Set();
       const uniqueActivities = [];
       activities.forEach(a => {
-        if (!seen.has(a.id)) {
+        if (!seen.has(a.id) && a.id && (a.title || a.name)) {
           seen.add(a.id);
           uniqueActivities.push({
             id: a.id,
-            name: a.name
+            name: a.title || a.name || ''
           });
         }
       });
-      return uniqueActivities.sort((a, b) => a.name.localeCompare(b.name));
+      return uniqueActivities.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
 
     /**

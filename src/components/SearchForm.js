@@ -169,11 +169,25 @@ export class SearchForm {
      button.setAttribute('aria-label', 'Limpiar todos los campos del formulario de búsqueda');
 
       button.addEventListener('click', () => {
+        console.log('[SearchForm] Botón "Limpiar Búsqueda" pulsado');
+        
         // Limpiar solo Sección A (searchForm)
-        store.setFilters({
-          searchText: '',
-          hasAvailableSpots: true,
-          maxAge: undefined
+        // IMPORTANTE: Usar setState directamente para batching de cambios
+        // Esto evita múltiples notificaciones a listeners
+        store.setState({
+          filters: {
+            ...store.getState().filters,
+            searchText: '',
+            hasAvailableSpots: true,
+            maxAge: undefined
+          },
+          pagination: {
+            offset: 0,
+            limit: 10,
+            totalItems: 0,
+            hasMore: true,
+            isLoadingMore: false
+          }
         });
         
         // Actualizar inputs visuales
@@ -185,6 +199,8 @@ export class SearchForm {
         if (spotsCheckbox) spotsCheckbox.checked = true;
         if (maxAgeInput) maxAgeInput.value = '';
 
+        // Llamar a onSearch SOLO UNA VEZ, después de que el estado se haya actualizado
+        console.log('[SearchForm] Llamando a onSearch después de limpiar');
         this.onSearch();
       });
 
