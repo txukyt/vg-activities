@@ -152,8 +152,7 @@ export class FilterPanel {
          options: activityOptions,
          selectedValues: state.filters.activity || [],
          onSelect: () => this.onFilterChange(),
-         hasSearchBox: true,
-         maxInitialOptions: 5
+         hasSearchBox: true
        });
 
        this.filterItems['activity'] = filterItem;
@@ -195,8 +194,7 @@ export class FilterPanel {
           options: centerOptions,
           selectedValues: state.filters.center || [],
           onSelect: () => this.onFilterChange(),
-          hasSearchBox: true,
-          maxInitialOptions: 5
+          hasSearchBox: true
         });
 
         this.filterItems['center'] = filterItem;

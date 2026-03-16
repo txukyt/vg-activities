@@ -753,6 +753,32 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+/* Personalizar scrollbar para navegadores basados en Webkit */
+.filter-options-list::-webkit-scrollbar,
+.filter-options-grouped::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filter-options-list::-webkit-scrollbar-track,
+.filter-options-grouped::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.filter-options-list::-webkit-scrollbar-thumb,
+.filter-options-grouped::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 4px;
+}
+
+.filter-options-list::-webkit-scrollbar-thumb:hover,
+.filter-options-grouped::-webkit-scrollbar-thumb:hover {
+  background: #0056b3;
 }
 
 .filter-option {

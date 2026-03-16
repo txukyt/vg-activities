@@ -136,14 +136,9 @@ export class FilterItem {
     }
 
     // Determinar cuántas opciones mostrar
+    // Con el scroll implementado, mostrar todas las opciones y dejar que el scroll maneje la navegación
     let optionsToShow = filteredOptions;
     let hasMoreButton = false;
-
-    if (filteredOptions.length > this.maxInitialOptions && !this.isExpanded && this.searchText.trim() === '') {
-      // Si hay búsqueda activa o está expandido, mostrar todas
-      optionsToShow = filteredOptions.slice(0, this.maxInitialOptions);
-      hasMoreButton = false;
-    }
 
     // Renderizar opciones visibles
     optionsToShow.forEach(option => {
