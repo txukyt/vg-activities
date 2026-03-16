@@ -154,58 +154,51 @@ export class SearchForm {
     return group;
   }
 
-   /**
-    * Crea el botón limpiar búsqueda.
-    * @private
-    */
-   #createClearButton() {
-     const buttonGroup = document.createElement('div');
-     buttonGroup.className = 'form-group button-group';
+    /**
+     * Crea el botón de búsqueda.
+     * Ejecuta una búsqueda con los filtros actuales y aplica efecto visual de repintado.
+     * @private
+     */
+    #createClearButton() {
+      const buttonGroup = document.createElement('div');
+      buttonGroup.className = 'form-group button-group';
 
-     const button = document.createElement('button');
-     button.type = 'button';
-     button.className = 'btn btn-secondary';
-     button.textContent = 'Limpiar Búsqueda';
-     button.setAttribute('aria-label', 'Limpiar todos los campos del formulario de búsqueda');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-secondary';
+      button.textContent = 'Buscar';
+      button.setAttribute('aria-label', 'Ejecutar búsqueda con los filtros actuales');
 
       button.addEventListener('click', () => {
-        console.log('[SearchForm] Botón "Limpiar Búsqueda" pulsado');
+        console.log('[SearchForm] Botón "Buscar" pulsado');
         
-        // Limpiar solo Sección A (searchForm)
-        // IMPORTANTE: Usar setState directamente para batching de cambios
-        // Esto evita múltiples notificaciones a listeners
-        store.setState({
-          filters: {
-            ...store.getState().filters,
-            searchText: '',
-            hasAvailableSpots: true,
-            maxAge: undefined
-          },
-          pagination: {
-            offset: 0,
-            limit: 10,
-            totalItems: 0,
-            hasMore: true,
-            isLoadingMore: false
-          },
-          facets: null  // CRÍTICO: Limpiar facetas para evitar bucle infinito al actualizar panel de filtros
-        });
+        // Aplicar efecto visual de fade a los resultados
+        const resultsWrapper = document.getElementById('results-wrapper');
+        if (resultsWrapper) {
+          // Guardar opacidad original
+          const originalOpacity = window.getComputedStyle(resultsWrapper).opacity;
+          
+          // Efecto fade: desvanecimiento a 0 y vuelta a 1
+          resultsWrapper.style.transition = 'opacity 0.3s ease';
+          resultsWrapper.style.opacity = '0';
+          
+          // Después de desvanecerse, volver a mostrar
+          setTimeout(() => {
+            resultsWrapper.style.opacity = '1';
+            // Limpiar inline styles después de la animación
+            setTimeout(() => {
+              resultsWrapper.style.transition = '';
+              resultsWrapper.style.opacity = '';
+            }, 300);
+          }, 300);
+        }
         
-        // Actualizar inputs visuales
-        const searchInput = document.getElementById('search-text');
-        const spotsCheckbox = document.getElementById('available-spots');
-        const maxAgeInput = document.getElementById('max-age');
-
-        if (searchInput) searchInput.value = '';
-        if (spotsCheckbox) spotsCheckbox.checked = true;
-        if (maxAgeInput) maxAgeInput.value = '';
-
-        // Llamar a onSearch SOLO UNA VEZ, después de que el estado se haya actualizado
-        console.log('[SearchForm] Llamando a onSearch después de limpiar');
+        // Ejecutar búsqueda con los filtros actuales
+        console.log('[SearchForm] Ejecutando búsqueda');
         this.onSearch();
       });
 
-     buttonGroup.appendChild(button);
-     return buttonGroup;
-   }
+      buttonGroup.appendChild(button);
+      return buttonGroup;
+    }
 }
