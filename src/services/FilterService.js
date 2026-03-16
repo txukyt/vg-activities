@@ -1,7 +1,20 @@
 /**
  * FilterService.js
- * Gestiona la lógica de los filtros visuales.
- * Incluye manipulación de opciones de filtro y visibilidad condicional.
+ * Servicio especializado en extracción y transformación de DATOS CRUDOS para filtros.
+ * 
+ * RESPONSABILIDADES:
+ * - Extraer opciones de filtros directamente del array de actividades (fallback)
+ * - Manipulación y filtrado de opciones
+ * - Validación de reglas de negocio
+ * - Métodos de configuración e inicialización
+ * 
+ * ARQUITECTURA:
+ * FacetsService (backend SOLR) → Store → FacetsService (transforma) → FilterPanel
+ *                                  ↓
+ *                        FilterService (fallback)
+ * 
+ * NOTA: Los métodos que transforman facetas normalizadas (*FromFacets) han sido 
+ * movidos a FacetsService.transformX* para mantener una arquitectura clara.
  */
 
 export class FilterService {
@@ -205,10 +218,10 @@ export class FilterService {
        }
      });
      
-     // Ordenar cada grupo
-     Object.keys(grouped).forEach(type => {
-       grouped[type].sort((a, b) => a.name.localeCompare(b.name));
-     });
+      // Ordenar cada grupo
+      Object.keys(grouped).forEach(type => {
+        grouped[type].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      });
      
      return grouped;
    }
@@ -229,7 +242,7 @@ export class FilterService {
           });
         }
       });
-      return Array.from(centers.values()).sort((a, b) => a.name.localeCompare(b.name));
+       return Array.from(centers.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
 
     /**
@@ -339,25 +352,27 @@ export class FilterService {
      ];
    }
 
-   /**
-    * Convierte vista agrupada de días a lista de días seleccionados.
-    * @param {Array} groups - Array de labels de grupos (ej: ['L-X', 'M-J'])
-    * @returns {Array} Array de días seleccionados
-    */
-   static expandDayGroups(groups) {
-     const groupMap = {
-       'L-X': ['lunes', 'martes', 'miércoles'],
-       'M-J': ['martes', 'miércoles', 'jueves'],
-       'V-S': ['viernes', 'sábado'],
-       'D': ['domingo']
-     };
-     
-     const days = new Set();
-     groups.forEach(group => {
-       if (groupMap[group]) {
-         groupMap[group].forEach(day => days.add(day));
-       }
-     });
-     return Array.from(days);
-   }
- }
+    /**
+     * Convierte vista agrupada de días a lista de días seleccionados.
+     * @param {Array} groups - Array de labels de grupos (ej: ['L-X', 'M-J'])
+     * @returns {Array} Array de días seleccionados
+     */
+    static expandDayGroups(groups) {
+      const groupMap = {
+        'L-X': ['lunes', 'martes', 'miércoles'],
+        'M-J': ['martes', 'miércoles', 'jueves'],
+        'V-S': ['viernes', 'sábado'],
+        'D': ['domingo']
+      };
+      
+      const days = new Set();
+      groups.forEach(group => {
+        if (groupMap[group]) {
+          groupMap[group].forEach(day => days.add(day));
+        }
+      });
+      return Array.from(days);
+    }
+
+
+  }

@@ -5,31 +5,33 @@
  */
 
 import { FilterService } from './services/FilterService.js';
+import { StorageService } from './services/StorageService.js';
 
 class Store {
-   constructor() {
-       this.state = {
-         filters: FilterService.getDefaultFilters(),
-         results: [],
-         viewMode: 'grouped', // 'grouped' o 'list'
-         loading: false,
-         error: null,
-         currentActivity: null,
-         scrollPosition: 0,
-         centers: [],
-         activities: [],
-         filtersDrawerOpen: false,  // Control de visibilidad del drawer de filtros en móvil
-         pagination: {
-           offset: 0,                // Número de items saltados
-           limit: 10,               // Items por request (SOLR limit)
-           totalItems: 0,            // Total descubierto
-           hasMore: true,            // ¿Hay más resultados?
-           isLoadingMore: false      // ¿Cargando más resultados?
-         }
-       };
+    constructor() {
+        this.state = {
+          filters: FilterService.getDefaultFilters(),
+          results: [],
+          viewMode: 'grouped', // 'grouped' o 'list'
+          loading: false,
+          error: null,
+          currentActivity: null,
+          scrollPosition: 0,
+          centers: [],
+          activities: [],
+          filtersDrawerOpen: false,  // Control de visibilidad del drawer de filtros en móvil
+          facets: null,              // Facetas del último resultado de búsqueda
+          pagination: {
+            offset: 0,                // Número de items saltados
+            limit: 10,               // Items por request (SOLR limit)
+            totalItems: 0,            // Total descubierto
+            hasMore: true,            // ¿Hay más resultados?
+            isLoadingMore: false      // ¿Cargando más resultados?
+          }
+        };
 
-       this.listeners = new Set();
-     }
+        this.listeners = new Set();
+      }
 
   /**
    * Obtiene una copia del estado actual.
@@ -166,20 +168,47 @@ class Store {
     return this.state.activities;
   }
 
-  /**
-   * Alterna el estado de visibilidad del drawer de filtros.
-   */
-  toggleFiltersDrawer() {
-    this.setState({ filtersDrawerOpen: !this.state.filtersDrawerOpen });
-  }
+   /**
+    * Alterna el estado de visibilidad del drawer de filtros.
+    */
+   toggleFiltersDrawer() {
+     this.setState({ filtersDrawerOpen: !this.state.filtersDrawerOpen });
+   }
+
+   /**
+    * Establece las facetas del resultado de búsqueda.
+    * Las facetas indica qué valores están disponibles para cada filtro.
+    * @param {Object|null} facets - Facetas del backend o null
+    */
+   setFacets(facets) {
+     this.setState({ facets });
+   }
+
+   /**
+    * Obtiene las facetas del resultado de búsqueda actual.
+    * @returns {Object|null} Facetas o null si no hay
+    */
+   getFacets() {
+     return this.state.facets;
+   }
 
   /**
-   * Reestablece los filtros a sus valores por defecto.
+   * Reestablece los filtros a sus valores por defecto y restaura centros y actividades.
+   * Intenta restaurar desde localStorage primero. Si no hay datos guardados,
+   * mantiene los actuales.
    */
   resetFilters() {
     this.setFilters(FilterService.getDefaultFilters());
     // Reset paginación cuando se limpian filtros
     this.setPaginationOffset(0);
+    
+    // Intentar restaurar centros y actividades desde localStorage
+    const restoredData = StorageService.restoreInitialData();
+    if (restoredData) {
+      this.setCenters(restoredData.centers);
+      this.setActivities(restoredData.activities);
+      console.log('Store: Centros y actividades restaurados desde localStorage');
+    }
   }
 
   /**

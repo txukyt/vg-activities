@@ -21,7 +21,7 @@ export class SearchComponent {
       this.searchForm = null;
       this.filterPanel = null;
       this.selectedFiltersBar = null;
-      this.intersectionObserver = null;  // Para infinite scroll
+      this.loadMoreButton = null;  // Botón "Ver más"
       this.previousFiltersJson = null;   // JSON string anterior para comparar
       this.lastPerformedSearch = null;   // Rastrear última búsqueda para evitar duplicados
    }
@@ -69,11 +69,11 @@ export class SearchComponent {
      });
 
      // Realizar una búsqueda general sin filtros al inicio si no hay resultados
-      let state = store.getState();
-      if (state.results.length === 0 && !state.loading && !state.error) {
+     let state = store.getState();
+     /* if (state.results.length === 0 && !state.loading && !state.error) {
        await this.#performSearch();
        state = store.getState();
-     }
+     } */
 
      // Header
      const header = document.createElement('header');
@@ -208,8 +208,6 @@ export class SearchComponent {
 
       if (filtersChanged) {
         console.log('[SearchComponent] Filtros cambiaron, reseteando offset a 0');
-        // CRÍTICO: Desconectar observer ANTES de cambiar estado para evitar race conditions
-        this.#disconnectInfiniteScroll();
         // Filtros cambiaron: nueva búsqueda desde offset 0
         isLoadingMore = false;
         store.setPaginationOffset(0);
@@ -265,9 +263,13 @@ export class SearchComponent {
             }
           });
           
-          // Convertir map a array ordenado
-          mergedResults = Array.from(centerMap.values())
-            .sort((a, b) => a.center.name.localeCompare(b.center.name));
+           // Convertir map a array ordenado
+           mergedResults = Array.from(centerMap.values())
+             .sort((a, b) => {
+               const nameA = a.center?.name || '';
+               const nameB = b.center?.name || '';
+               return nameA.localeCompare(nameB);
+             });
         } else {
           // Modo lista: concatenar directamente
           mergedResults = [...existingResults, ...newResults];
@@ -331,9 +333,6 @@ export class SearchComponent {
 
     console.log('[SearchComponent] #updateResults DISPARADO. loading:', state.loading, 'results:', state.results.length, 'hasMore:', state.pagination.hasMore);
 
-    // Desconectar observer anterior INMEDIATAMENTE para evitar que interfiera
-    this.#disconnectInfiniteScroll();
-
     // Actualizar filtros de Centro y Actividad en el panel de filtros
     if (this.filterPanel) {
       this.filterPanel.updateFormFilters();
@@ -375,26 +374,28 @@ export class SearchComponent {
       );
       resultsWrapper.appendChild(resultsElement);
 
-      // Agregar sentinel para infinite scroll (al final de resultados)
-      const sentinel = document.createElement('div');
-      sentinel.id = 'infinite-scroll-sentinel';
-      sentinel.className = 'infinite-scroll-sentinel';
-      resultsWrapper.appendChild(sentinel);
-
-      // Si hay más resultados, configurar observer para carga infinita
-      if (state.pagination.hasMore && !state.pagination.isLoadingMore) {
-        console.log('[SearchComponent] Configurando infinite scroll. Offset:', state.pagination.offset, 'Total:', state.pagination.totalItems);
-        this.#setupInfiniteScroll(sentinel);
-      } else {
-        console.log('[SearchComponent] NO se configura infinite scroll. hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
-      }
-
-      // Indicador de carga infinita
+      // Indicador de carga
       if (state.pagination.isLoadingMore) {
         const loadingIndicator = document.createElement('div');
         loadingIndicator.className = 'loading-more';
         loadingIndicator.innerHTML = '<p>Cargando más resultados...</p>';
         resultsWrapper.appendChild(loadingIndicator);
+      }
+
+      // Botón "Ver más" si hay más resultados disponibles
+      if (state.pagination.hasMore && !state.pagination.isLoadingMore) {
+        console.log('[SearchComponent] Mostrando botón "Ver más". Offset:', state.pagination.offset, 'Total:', state.pagination.totalItems);
+        const loadMoreButton = document.createElement('button');
+        loadMoreButton.className = 'btn-load-more';
+        loadMoreButton.textContent = 'Ver más';
+        loadMoreButton.addEventListener('click', async () => {
+          console.log('[SearchComponent] Usuario hizo click en "Ver más"');
+          await this.#performSearch(true); // true = cargar más resultados
+        });
+        resultsWrapper.appendChild(loadMoreButton);
+        this.loadMoreButton = loadMoreButton;
+      } else {
+        console.log('[SearchComponent] NO se muestra botón "Ver más". hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
       }
     } else {
       // Sin resultados
@@ -406,62 +407,6 @@ export class SearchComponent {
     }
   }
 
-  /**
-   * Desconecta el Intersection Observer del infinite scroll.
-   * Se llama cuando cambios de filtros para limpiar el observer anterior.
-   * @private
-   */
-  #disconnectInfiniteScroll() {
-    if (this.intersectionObserver) {
-      console.log('[InfiniteScroll] Desconectando observer anterior');
-      this.intersectionObserver.disconnect();
-      this.intersectionObserver = null;
-    }
-  }
-
-  /**
-   * Configura Intersection Observer para infinite scroll.
-   * Cuando el sentinel es visible, carga más resultados.
-   * @private
-   */
-  #setupInfiniteScroll(sentinel) {
-    console.log('[InfiniteScroll] === INICIANDO #setupInfiniteScroll ===');
-    
-    // Desconectar observer anterior si existe (siempre hacerlo al inicio)
-    if (this.intersectionObserver) {
-      console.log('[InfiniteScroll] Desconectando observer anterior');
-      this.intersectionObserver.disconnect();
-      this.intersectionObserver = null;
-    }
-
-    // Crear nuevo observer
-    console.log('[InfiniteScroll] CREANDO nuevo IntersectionObserver');
-    this.intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          // Cuando el sentinel entra en viewport, cargar más
-          if (entry.isIntersecting) {
-            const state = store.getState();
-            console.log('[InfiniteScroll] Sentinel visible. hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
-            if (state.pagination.hasMore && !state.pagination.isLoadingMore) {
-              console.log('[InfiniteScroll] Cargando más resultados...');
-              this.#performSearch(true);  // true = infinite scroll
-            }
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: '200px',  // Empezar a cargar 200px antes de llegar al final
-        threshold: 0
-      }
-    );
-
-    // Observar el sentinel
-    console.log('[InfiniteScroll] ✓✓✓ OBSERVANDO NUEVO SENTINEL ✓✓✓');
-    this.intersectionObserver.observe(sentinel);
-    console.log('[InfiniteScroll] === #setupInfiniteScroll COMPLETADO ===');
-  }
 
   /**
    * Maneja el click en una actividad.
@@ -487,9 +432,6 @@ export class SearchComponent {
    * Limpia los listeners cuando el componente se desmonta.
    */
   destroy() {
-    // Desconectar observer
-    this.#disconnectInfiniteScroll();
-    
     // Desuscribirse del store
     if (this.unsubscribe) {
       this.unsubscribe();

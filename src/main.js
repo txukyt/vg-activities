@@ -10,6 +10,7 @@ import { DetailComponent } from './components/DetailComponent.js';
 import { SessionDetailComponent } from './components/SessionDetailComponent.js';
 import { store } from './store.js';
 import { FilterService } from './services/FilterService.js';
+import { StorageService } from './services/StorageService.js';
 
 /**
  * Inicializa la aplicación SPA.
@@ -36,6 +37,10 @@ async function initApp() {
      const initData = await FilterService.getInitData();
      store.setCenters(initData.centers);
      store.setActivities(initData.activities);
+     
+     // Guardar centros y actividades en localStorage para restaurarlos en limpiezas de filtros
+     StorageService.saveInitialData(initData.centers, initData.activities);
+     
      console.info('Datos iniciales cargados:', {
        centersCount: initData.centers.length,
        activitiesCount: initData.activities.length,
@@ -48,8 +53,8 @@ async function initApp() {
   // Obtener ruta actual
   const { path, params } = Router.getCurrentRouteFromUrl();
 
-   // Renderizar página inicial
-    await router.renderInitial(path, params);
+  // Renderizar página inicial
+  await router.renderInitial(path, params);
 }
 
 // Iniciar la aplicación cuando el DOM esté listo

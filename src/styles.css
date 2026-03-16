@@ -377,6 +377,43 @@ button {
 }
 
 /* ===========================*/
+/* LOAD MORE BUTTON */
+/* ============================*/
+.btn-load-more {
+  display: block;
+  margin: 2rem auto;
+  padding: 0.875rem 2rem;
+  background-color: #007bff;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.btn-load-more:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-load-more:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.2);
+}
+
+.btn-load-more:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===========================*/
 /* INFINITE SCROLL */
 /* ============================*/
 .infinite-scroll-sentinel {
@@ -1169,6 +1206,14 @@ button {
   .btn-large {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
+  }
+
+  .btn-load-more {
+    margin: 1.5rem auto;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    width: 90%;
+    max-width: 100%;
   }
 }
 

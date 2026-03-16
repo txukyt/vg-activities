@@ -187,7 +187,8 @@ export class SearchForm {
             totalItems: 0,
             hasMore: true,
             isLoadingMore: false
-          }
+          },
+          facets: null  // CRÍTICO: Limpiar facetas para evitar bucle infinito al actualizar panel de filtros
         });
         
         // Actualizar inputs visuales

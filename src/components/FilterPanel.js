@@ -6,6 +6,7 @@
 
 import { store } from '../store.js';
 import { FilterService } from '../services/FilterService.js';
+import { FacetsService } from '../services/FacetsService.js';
 import { FilterItem } from './FilterItem.js';
 
 export class FilterPanel {
@@ -108,7 +109,7 @@ export class FilterPanel {
     if (!filtersContainer) return;
 
     // Actualizar filtro de Actividad si cambió
-    if (activityChanged) {
+    if (activityChanged || centerChanged) {
       const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
       if (activityFilterElement) {
         activityFilterElement.replaceWith(this.#createActivityFilter());
@@ -116,7 +117,7 @@ export class FilterPanel {
     }
 
     // Actualizar filtro de Centro si cambió
-    if (centerChanged) {
+    if (centerChanged || activityChanged) {
       const centerFilterElement = filtersContainer.querySelector('[data-filter-id="center"]');
       if (centerFilterElement) {
         centerFilterElement.replaceWith(this.#createCenterFilter());
@@ -128,61 +129,82 @@ export class FilterPanel {
    * Crea el filtro de Actividad.
    * @private
    */
-    #createActivityFilter() {
-      const state = store.getState();
-      
-      // Obtener todas las actividades
-     const allActivityNames = FilterService.getActivityNames(this.activities);
+      #createActivityFilter() {
+        const state = store.getState();
+        
+        // Obtener facetas del store si existen
+        const facets = store.getFacets();
+        let activityOptions = [];
 
-     const filterItem = new FilterItem({
-       id: 'activity',
-       label: 'Actividad',
-       options: allActivityNames,
-       selectedValues: state.filters.activity || [],
-       onSelect: () => this.onFilterChange(),
-       hasSearchBox: true,
-       maxInitialOptions: 5
-     });
+        if (facets && facets.libreStr01) {
+          // Usar facetas dinámicas transformadas por FacetsService
+          activityOptions = FacetsService.transformActivityFacetsToOptions(facets.libreStr01);
+          console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
+        } else {
+          // Fallback: usar todas las actividades disponibles mediante FilterService
+          activityOptions = FilterService.getActivityNames(this.activities);
+          console.log('[FilterPanel] Sin facetas. Usando todas las actividades. Opciones:', activityOptions.length);
+        }
 
-     this.filterItems['activity'] = filterItem;
-     const element = filterItem.render();
-     element.setAttribute('data-filter-id', 'activity');
+       const filterItem = new FilterItem({
+         id: 'activity',
+         label: 'Actividad',
+         options: activityOptions,
+         selectedValues: state.filters.activity || [],
+         onSelect: () => this.onFilterChange(),
+         hasSearchBox: true,
+         maxInitialOptions: 5
+       });
 
-     return element;
-   }
+       this.filterItems['activity'] = filterItem;
+       const element = filterItem.render();
+       element.setAttribute('data-filter-id', 'activity');
+
+       return element;
+     }
 
     /**
      * Crea el filtro de Centro.
      * Si hay un centro seleccionado, no muestra el filtro de centros.
      * @private
      */
-    #createCenterFilter() {
-      const state = store.getState();
-      
-      // Obtener todos los centros disponibles
-      const allCenters = store.getCenters();
-      // Pasar objetos con .name e .id para que FilterItem los muestre y guarde IDs
-      const options = allCenters.map(center => ({
-        name: center.name,
-        id: center.id
-      }));
+      #createCenterFilter() {
+        const state = store.getState();
+        
+        // Obtener facetas del store si existen
+        const facets = store.getFacets();
+        let centerOptions = [];
 
-      const filterItem = new FilterItem({
-        id: 'center',
-        label: 'Centro',
-        options: options,
-        selectedValues: state.filters.center || [],
-        onSelect: () => this.onFilterChange(),
-        hasSearchBox: true,
-        maxInitialOptions: 5
-      });
+        if (facets && facets.libreInt01) {
+          // Usar facetas dinámicas transformadas por FacetsService
+          centerOptions = FacetsService.transformCenterFacetsToOptions(facets.libreInt01);
+          console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
+        } else {
+          // Fallback: usar todos los centros disponibles mediante FilterService
+          const allCenters = store.getCenters();
+          centerOptions = allCenters.map(center => ({
+            name: center.name,
+            id: center.id
+          }));
+          console.log('[FilterPanel] Sin facetas. Usando todos los centros. Opciones:', centerOptions.length);
+        }
 
-      this.filterItems['center'] = filterItem;
-      const element = filterItem.render();
-      element.setAttribute('data-filter-id', 'center');
+        const filterItem = new FilterItem({
+          id: 'center',
+          label: 'Centro',
+          options: centerOptions,
+          selectedValues: state.filters.center || [],
+          onSelect: () => this.onFilterChange(),
+          hasSearchBox: true,
+          maxInitialOptions: 5
+        });
 
-      return element;
-    }
+        this.filterItems['center'] = filterItem;
+        const element = filterItem.render();
+        element.setAttribute('data-filter-id', 'center');
+
+        return element;
+      }
 
 
 
@@ -234,10 +256,15 @@ export class FilterPanel {
       // Actualizar store
       store.setFilters({ dayOfWeekViewMode: this.dayWeekViewMode });
 
-      // Re-renderizar opciones
-      const optionsContainer = detailsContent.querySelector('.filter-options');
-      optionsContainer.innerHTML = '';
-      const days = FilterService.getDaysOfWeek(this.activities);
+       // Re-renderizar opciones
+       const optionsContainer = detailsContent.querySelector('.filter-options');
+       optionsContainer.innerHTML = '';
+       
+       // Obtener facetas del store si existen
+        const facets = store.getFacets();
+        const days = facets && facets.dayOfWeek
+          ? FacetsService.transformDayOfWeekFacetsToOptions(facets.dayOfWeek)
+          : FilterService.getDaysOfWeek(this.activities);
       
       if (this.dayWeekViewMode === 'grouped') {
         optionsContainer.appendChild(this.#renderGroupedDays(days));
@@ -261,13 +288,18 @@ export class FilterPanel {
     toggleContainer.appendChild(toggleSwitch);
     detailsContent.appendChild(toggleContainer);
 
-    // Opciones
-    const optionsContainer = document.createElement('div');
-    optionsContainer.className = 'filter-options';
-    optionsContainer.id = 'filter-options-dayOfWeek';
+     // Opciones
+     const optionsContainer = document.createElement('div');
+     optionsContainer.className = 'filter-options';
+     optionsContainer.id = 'filter-options-dayOfWeek';
 
-    const days = FilterService.getDaysOfWeek(this.activities);
-    optionsContainer.appendChild(this.#renderGroupedDays(days)); // Default grouped
+       // Obtener facetas del store si existen
+        const facets = store.getFacets();
+        const days = facets && facets.dayOfWeek
+          ? FacetsService.transformDayOfWeekFacetsToOptions(facets.dayOfWeek)
+          : FilterService.getDaysOfWeek(this.activities);
+     
+     optionsContainer.appendChild(this.#renderGroupedDays(days)); // Default grouped
 
     detailsContent.appendChild(optionsContainer);
     filterContainer.appendChild(detailsContent);
@@ -375,46 +407,72 @@ export class FilterPanel {
    * Crea el filtro de Horario.
    * @private
    */
-  #createTimeSlotFilter() {
-    const options = FilterService.getTimeSlots(this.activities);
-    const state = store.getState();
+    #createTimeSlotFilter() {
+      const state = store.getState();
+      
+      // Obtener facetas del store si existen
+      const facets = store.getFacets();
+      let timeSlotOptions = [];
 
-    const filterItem = new FilterItem({
-      id: 'timeSlot',
-      label: 'Horario',
-      options: options,
-      selectedValues: state.filters.timeSlot.map(slot => {
-        const slotMap = { 'Mañana': 'manana', 'Tarde': 'tarde', 'Mañana y Tarde': 'manana_y_tarde' };
-        return Object.keys(slotMap).includes(slot) ? slotMap[slot] : slot;
-      }),
-      onSelect: () => this.onFilterChange(),
-      hasSearchBox: false
-    });
+      if (facets && facets.timeSlot) {
+        // Usar facetas dinámicas transformadas por FacetsService
+        timeSlotOptions = FacetsService.transformTimeSlotFacetsToOptions(facets.timeSlot);
+        console.log('[FilterPanel] Usando facetas para horarios. Opciones:', timeSlotOptions.length);
+      } else {
+        // Fallback: usar todos los horarios disponibles mediante FilterService
+        timeSlotOptions = FilterService.getTimeSlots(this.activities);
+        console.log('[FilterPanel] Sin facetas. Usando todos los horarios. Opciones:', timeSlotOptions.length);
+      }
 
-    this.filterItems['timeSlot'] = filterItem;
-    return filterItem.render();
-  }
+      const filterItem = new FilterItem({
+        id: 'timeSlot',
+        label: 'Horario',
+        options: timeSlotOptions,
+        selectedValues: state.filters.timeSlot.map(slot => {
+          const slotMap = { 'Mañana': 'manana', 'Tarde': 'tarde', 'Mañana y Tarde': 'manana_y_tarde' };
+          return Object.keys(slotMap).includes(slot) ? slotMap[slot] : slot;
+        }),
+        onSelect: () => this.onFilterChange(),
+        hasSearchBox: false
+      });
+
+      this.filterItems['timeSlot'] = filterItem;
+      return filterItem.render();
+    }
 
   /**
    * Crea el filtro de Idioma.
    * @private
    */
-  #createLanguageFilter() {
-    const options = FilterService.getLanguages(this.activities);
-    const state = store.getState();
+    #createLanguageFilter() {
+      const state = store.getState();
+      
+      // Obtener facetas del store si existen
+      const facets = store.getFacets();
+      let languageOptions = [];
 
-    const filterItem = new FilterItem({
-      id: 'language',
-      label: 'Idioma',
-      options: options,
-      selectedValues: state.filters.language,
-      onSelect: () => this.onFilterChange(),
-      hasSearchBox: true
-    });
+      if (facets && facets.language) {
+        // Usar facetas dinámicas transformadas por FacetsService
+        languageOptions = FacetsService.transformLanguageFacetsToOptions(facets.language);
+        console.log('[FilterPanel] Usando facetas para idiomas. Opciones:', languageOptions.length);
+      } else {
+        // Fallback: usar todos los idiomas disponibles mediante FilterService
+        languageOptions = FilterService.getLanguages(this.activities);
+        console.log('[FilterPanel] Sin facetas. Usando todos los idiomas. Opciones:', languageOptions.length);
+      }
 
-    this.filterItems['language'] = filterItem;
-    return filterItem.render();
-  }
+      const filterItem = new FilterItem({
+        id: 'language',
+        label: 'Idioma',
+        options: languageOptions,
+        selectedValues: state.filters.language,
+        onSelect: () => this.onFilterChange(),
+        hasSearchBox: true
+      });
+
+      this.filterItems['language'] = filterItem;
+      return filterItem.render();
+    }
 
   /**
    * Crea el botón limpiar filtros (Sección B solo).

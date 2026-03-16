@@ -2,12 +2,13 @@
  * SearchService.js (v3 - Sesiones + Enriquecimiento desde Store)
  * Orquestador de búsqueda que consulta el backend SOLR.
  * - Recibe sesiones mínimas (sessionId, activityId, centerId)
- * - Enriquece con nombres (centerName, activityTitle) desde el store
+ * - Enriquece con nombres (centerName, activityName) desde el store
  * - Agrupa por Centro → Actividad → Sesiones (jerárquico)
  * Patrón: Service Layer + Repository Pattern
  */
 
 import { SolrGateway } from './SolrGateway.js';
+import { FacetsService } from './FacetsService.js';
 import { store } from '../store.js';
 
 export class SearchService {
@@ -15,7 +16,7 @@ export class SearchService {
     * Ejecuta una búsqueda contra el backend SOLR.
     * FLUJO:
     * 1. Consulta sesiones mínimas al backend
-    * 2. Enriquece con centerName y activityTitle desde el store
+    * 2. Enriquece con centerName y activityName desde el store
     * 3. Agrupa por Centro → Actividad → Sesiones
     * REGLA DE NEGOCIO CRÍTICA: SIEMPRE agrupa por centro y actividad.
     * Soporta infinite scroll con offset y limit.
@@ -45,34 +46,44 @@ export class SearchService {
       // PASO 1: Consultar el backend SOLR
       const solrResponse = await SolrGateway.search(filters, offset, limit);
 
-      console.log('[SearchService] Respuesta recibida del backend', {
-        resultsCount: solrResponse.results?.length || 0,
-        totalCount: solrResponse.totalCount || 0,
-        hasFacets: !!solrResponse.facets
-      });
+       console.log('[SearchService] Respuesta recibida del backend', {
+         resultsCount: solrResponse.results?.length || 0,
+         totalCount: solrResponse.totalCount || 0,
+         hasFacets: !!solrResponse.facets
+       });
 
-      // PASO 2: Transformar respuesta SOLR según estructura
-      // La estructura de solrResponse dependerá de cómo el backend retorne los datos.
-      // Soportar múltiples formatos genéricamente:
-      // - { results: [...], totalCount, facets, ... }
-      // - { docs: [...], numFound, facets_counts, ... }
-      const results = this.#extractResults(solrResponse);
-      const totalCount = this.#extractTotalCount(solrResponse);
+       // PASO 2: Procesar facetas y guardar en store
+       // Las facetas permitirán actualizar dinámicamente el panel de filtros
+       const facets = FacetsService.parseFacetsFromBackend(solrResponse);
+       if (facets) {
+         console.log('[SearchService] Guardando facetas en store', {
+           facetTypes: Object.keys(facets).join(', ')
+         });
+         store.setFacets(facets);
+       }
+
+       // PASO 3: Transformar respuesta SOLR según estructura
+       // La estructura de solrResponse dependerá de cómo el backend retorne los datos.
+       // Soportar múltiples formatos genéricamente:
+       // - { results: [...], totalCount, facets, ... }
+       // - { docs: [...], numFound, facets_counts, ... }
+       const results = this.#extractResults(solrResponse);
+       const totalCount = this.#extractTotalCount(solrResponse);
 
       console.log('[SearchService] Datos extraídos de respuesta SOLR', {
         extractedResults: results.length,
         extractedTotalCount: totalCount
       });
 
-       // PASO 3: Transformar resultados al formato esperado si es necesario
-       // Si el backend retorna estructura plana (con sessionId), enriquecer y agrupar
-       const enrichedSessions = this.#transformResults(results);
+        // PASO 4: Transformar resultados al formato esperado si es necesario
+        // Si el backend retorna estructura plana (con sessionId), enriquecer y agrupar
+        const enrichedSessions = this.#transformResults(results);
 
-       console.log('[SearchService] Sesiones enriquecidas', {
-         totalSessions: enrichedSessions.length
-       });
+        console.log('[SearchService] Sesiones enriquecidas', {
+          totalSessions: enrichedSessions.length
+        });
 
-       // PASO 4: REGLA DE NEGOCIO CRÍTICA: Agrupar por Centro → Actividad → Sesiones
+        // PASO 5: REGLA DE NEGOCIO CRÍTICA: Agrupar por Centro → Actividad → Sesiones
        if (enrichedSessions.length > 0) {
          const groupedData = this.#groupByCenter(enrichedSessions);
 
@@ -125,7 +136,7 @@ export class SearchService {
     * Busca el nombre del centro y título de la actividad.
     * 
     * @param {Object} session - Sesión con estructura mínima (IDs)
-    * @returns {Object} Sesión enriquecida con centerName y activityTitle
+    * @returns {Object} Sesión enriquecida con centerName y activityName
     * @private
     */
    static #enrichSessionData(session) {
@@ -153,7 +164,7 @@ export class SearchService {
        return {
          ...session,
          centerName: center.name,
-         activityTitle: activity.title
+         activityName: activity.title
        };
      } catch (error) {
        console.error('[SearchService] Error enriqueciendo sesión', {
@@ -206,7 +217,7 @@ export class SearchService {
            if (index === 0) {
              console.log('[SearchService] Sesión enriquecida (muestra):', {
                original: { sessionId: session.sessionId, activityId: session.activityId, centerId: session.centerId },
-               enriched: { centerName: enriched.centerName, activityTitle: enriched.activityTitle }
+               enriched: { centerName: enriched.centerName, activityName: enriched.activityName }
              });
            }
            return enriched;
@@ -275,7 +286,7 @@ export class SearchService {
          id: sessions[0].sessionId,
          centerId: sessions[0].centerId,
          activityId: sessions[0].activityId,
-         hasEnrichedNames: !!sessions[0].centerName && !!sessions[0].activityTitle
+         hasEnrichedNames: !!sessions[0].centerName && !!sessions[0].activityName
        } : null
      });
 
@@ -296,7 +307,7 @@ export class SearchService {
            return;
          }
 
-         const { centerId, centerName, activityId, activityTitle } = session;
+         const { centerId, centerName, activityId, activityName } = session;
 
          // PASO 1: Asegurar estructura de Centro
          if (!centerMap.has(centerId)) {
@@ -315,7 +326,7 @@ export class SearchService {
          if (!centerGroup.activitiesMap.has(activityId)) {
            centerGroup.activitiesMap.set(activityId, {
              id: activityId,
-             title: activityTitle,
+             title: activityName,
              sessions: []
            });
          }
@@ -351,11 +362,15 @@ export class SearchService {
        });
      }
 
-     // PASO 5: Convertir Map a Array y ordenar
-     const result = Array.from(centerMap.values());
+      // PASO 5: Convertir Map a Array y ordenar
+      const result = Array.from(centerMap.values());
 
-     // Ordenar por nombre de centro
-     result.sort((a, b) => a.center.name.localeCompare(b.center.name));
+      // Ordenar por nombre de centro (con safe check para undefined)
+      result.sort((a, b) => {
+        const nameA = a.center?.name || '';
+        const nameB = b.center?.name || '';
+        return nameA.localeCompare(nameB);
+      });
 
      console.log('[SearchService] Agrupación completada', {
        totalCenters: result.length,

@@ -142,7 +142,7 @@ export class FilterItem {
     if (filteredOptions.length > this.maxInitialOptions && !this.isExpanded && this.searchText.trim() === '') {
       // Si hay búsqueda activa o está expandido, mostrar todas
       optionsToShow = filteredOptions.slice(0, this.maxInitialOptions);
-      hasMoreButton = true;
+      hasMoreButton = false;
     }
 
     // Renderizar opciones visibles
