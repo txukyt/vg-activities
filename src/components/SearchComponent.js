@@ -70,10 +70,10 @@ export class SearchComponent {
 
      // Realizar una búsqueda general sin filtros al inicio si no hay resultados
      let state = store.getState();
-     /* if (state.results.length === 0 && !state.loading && !state.error) {
+     if (state.results.length === 0 && !state.loading && !state.error) {
        await this.#performSearch();
        state = store.getState();
-     } */
+     }
 
      // Header
      const header = document.createElement('header');
@@ -279,6 +279,7 @@ export class SearchComponent {
         store.setState({
           results: mergedResults,
           viewMode: result.viewMode,
+          facets: result.facets,
           pagination: {
             offset: result.offset + result.limit,
             limit: result.limit,
@@ -293,6 +294,7 @@ export class SearchComponent {
         console.log('[SearchComponent] Actualizando paginación. totalItems:', result.totalItems, 'hasMore:', result.hasMore, 'offset:', result.offset, 'limit:', result.limit);
         store.setState({
           results: result.data,
+          facets: result.facets,
           viewMode: result.viewMode,
           pagination: {
             offset: result.offset + result.limit,

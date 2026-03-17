@@ -24,7 +24,15 @@ export class DetailComponent {
 
     // Intentar cargar la actividad
     try {
-      this.activity = await SearchService.getActivityById(this.activityId);
+
+      const state = store.getState();
+      
+      this.activity = state.results.activities.find(activity => activity.id === this.activityId);
+
+
+
+
+      //this.activity = await SearchService.getActivityById(this.activityId);
       
       if (!this.activity) {
         container.innerHTML = `

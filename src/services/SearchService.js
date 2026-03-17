@@ -55,12 +55,6 @@ export class SearchService {
        // PASO 2: Procesar facetas y guardar en store
        // Las facetas permitirán actualizar dinámicamente el panel de filtros
        const facets = FacetsService.parseFacetsFromBackend(solrResponse);
-       if (facets) {
-         console.log('[SearchService] Guardando facetas en store', {
-           facetTypes: Object.keys(facets).join(', ')
-         });
-         store.setFacets(facets);
-       }
 
        // PASO 3: Transformar respuesta SOLR según estructura
        // La estructura de solrResponse dependerá de cómo el backend retorne los datos.
@@ -99,7 +93,7 @@ export class SearchService {
           hasMore: offset + limit < totalCount,
           offset,
           limit,
-          facets: solrResponse.facets || solrResponse.facets_counts || null
+          facets: facets
          };
        } else {
          return {
@@ -109,7 +103,7 @@ export class SearchService {
            hasMore: offset + limit < totalCount,
            offset,
            limit,
-           facets: solrResponse.facets || solrResponse.facets_counts || null
+           facets: facets
          };
        }
     } catch (error) {
@@ -145,7 +139,7 @@ export class SearchService {
        const activities = store.getActivities();
 
        // Buscar centro y actividad por ID
-       const center = centers.find(c => c.id === session.centerId);
+       const center = centers.find(c => Number(c.id) === session.centerId);
        const activity = activities.find(a => a.id === session.activityId);
 
        // Si no existen, registrar warning pero retornar sesión sin enriquecer
@@ -164,7 +158,7 @@ export class SearchService {
        return {
          ...session,
          centerName: center.name,
-         activityName: activity.title
+         activityName: activity.name
        };
      } catch (error) {
        console.error('[SearchService] Error enriqueciendo sesión', {

@@ -1,23 +1,25 @@
 /**
  * FacetsService.js
  * Servicio especializado en procesamiento de FACETAS del backend SOLR.
- * 
+ *
  * RESPONSABILIDADES:
  * - Parsear respuestas SOLR en múltiples formatos
  * - Normalizar facetas a estructura consistente
  * - Transformar facetas normalizadas a opciones de UI (transformX* methods)
  * - Aplicar mapeos en valores según contexto (timeSlot, language, dayOfWeek)
- * 
+ *
  * ARQUITECTURA:
  * Backend SOLR → parseFacetsFromBackend() → Store (almacena)
  *                                                ↓
  *                                    transformX* (crea opciones UI)
  *                                                ↓
  *                          FilterPanel.js (renderiza)
- * 
- * NOTA: Este servicio es la ÚNICA fuente de verdad para interpretar 
+ *
+ * NOTA: Este servicio es la ÚNICA fuente de verdad para interpretar
  * respuestas del backend y transformarlas a opciones de UI.
  */
+
+import { store } from '../store.js';
 
 export class FacetsService {
   /**
@@ -350,34 +352,104 @@ export class FacetsService {
 
    /**
     * Transforma facetas de actividades a formato {id, name} para UI.
+    * Busca los nombres de actividades en el store por ID.
+    * Si no encuentra nombre, usa el ID como fallback.
     * @param {Array} activityFacets - Facetas de actividades del store
     * @returns {Array} Array de objetos {id, name}
     */
    static transformActivityFacetsToOptions(activityFacets) {
      if (!Array.isArray(activityFacets)) return [];
      
-     return activityFacets
-       .map(facet => ({
-         id: facet.value || facet.id,
-         name: facet.value || facet.name || ''
-       }))
+     const activities = store.getActivities();
+     const activitiesMap = new Map();
+     
+     // Crear un mapa de actividades por id para búsqueda rápida
+     if (Array.isArray(activities)) {
+       activities.forEach(activity => {
+         if (activity && activity.id) {
+           // Convertir a string para comparar con valor de faceta (que es string)
+           activitiesMap.set(String(activity.id), activity.title || activity.name || String(activity.id));
+         }
+       });
+     }
+     
+     const transformed = activityFacets
+       .map(facet => {
+         const activityId = facet.value?.toUpperCase() || facet.id;
+         let name = facet.name || '';
+         
+         // Si no hay name en la faceta, buscar en el store
+         if (!name && activitiesMap.has(String(activityId))) {
+           name = activitiesMap.get(String(activityId));
+         }
+         
+         return {
+           id: activityId,
+           name: name || String(activityId)
+         };
+       })
        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+     
+     console.log('[FacetsService] transformActivityFacetsToOptions:', {
+       inputCount: activityFacets.length,
+       outputCount: transformed.length,
+       mappedActivities: activitiesMap.size,
+       sample: transformed.slice(0, 3)
+     });
+     
+     return transformed;
    }
 
    /**
     * Transforma facetas de centros a formato {id, name} para UI.
+    * Si no viene name en la faceta, busca el nombre del centro en el store.
+    * Maneja conversión de tipos de datos (string ↔ número) para asegurar mapeo correcto.
     * @param {Array} centerFacets - Facetas de centros del store
     * @returns {Array} Array de objetos {id, name}
     */
    static transformCenterFacetsToOptions(centerFacets) {
      if (!Array.isArray(centerFacets)) return [];
      
-     return centerFacets
-       .map(facet => ({
-         id: facet.value || facet.id,
-         name: facet.value || facet.name || ''
-       }))
+     const centers = store.getCenters();
+     const centersMap = new Map();
+     
+     // Crear un mapa de centros por id para búsqueda rápida
+     // Convertir a string para búsqueda consistente
+     if (Array.isArray(centers)) {
+       centers.forEach(center => {
+         if (center && center.id) {
+           const centerId = String(center.id);
+           centersMap.set(centerId, center.name || center.id);
+         }
+       });
+     }
+     
+     const transformed = centerFacets
+       .map(facet => {
+         const centerId = facet.value || facet.id;
+         let name = facet.name || '';
+         
+         // Si no hay name en la faceta, buscar en el store (convertir a string para comparación)
+         const centerIdStr = String(centerId);
+         if (!name && centersMap.has(centerIdStr)) {
+           name = centersMap.get(centerIdStr);
+         }
+         
+         return {
+           id: centerId,
+           name: name || String(centerId)
+         };
+       })
        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+     
+     console.log('[FacetsService] transformCenterFacetsToOptions:', {
+       inputCount: centerFacets.length,
+       outputCount: transformed.length,
+       mappedCenters: centersMap.size,
+       sample: transformed.slice(0, 3)
+     });
+     
+     return transformed;
    }
 
    /**

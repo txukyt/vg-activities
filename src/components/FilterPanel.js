@@ -16,6 +16,7 @@ export class FilterPanel {
     this.activities = [];
     this.dayWeekViewMode = 'grouped'; // Para A/B Testing
     this.previousFilters = { center: [], activity: [] }; // Para detectar cambios
+    this.previousFacets = null; // Para detectar cambios en facetas del backend
     this.containerElement = null; // Para almacenar la referencia al contenedor
     this.previousFormCenterId = null; // Para rastrear cambios en el centro del formulario
     this.previousFormActivityId = null; // Para rastrear cambios en la actividad del formulario
@@ -88,38 +89,53 @@ export class FilterPanel {
 
   /**
    * Actualiza los filtros de Centro y Actividad cuando cambian.
+   * Detecta cambios tanto en los filtros seleccionados como en las facetas del backend.
    * @private
    */
   #updateActivityAndCenterFilters() {
     const state = store.getState();
+    const currentFacets = store.getFacets();
     
-    // Detectar si cambió el centro o la actividad
+    // Detectar si cambió el centro o la actividad (filtros seleccionados)
     const centerChanged = JSON.stringify(state.filters.center) !== JSON.stringify(this.previousFilters.center);
     const activityChanged = JSON.stringify(state.filters.activity) !== JSON.stringify(this.previousFilters.activity);
 
-    if (!centerChanged && !activityChanged) return;
+    // Detectar si cambiaron las facetas disponibles del backend
+    const facetsChanged = JSON.stringify(currentFacets) !== JSON.stringify(this.previousFacets);
+
+    // Si no hay cambios en filtros NI en facetas, no hacer nada
+    if (!centerChanged && !activityChanged && !facetsChanged) {
+      return;
+    }
+
+    console.log('[FilterPanel] #updateActivityAndCenterFilters: centerChanged=', centerChanged, ' activityChanged=', activityChanged, ' facetsChanged=', facetsChanged);
 
     // Actualizar referencias de estado
     this.previousFilters = {
       center: [...(state.filters.center || [])],
       activity: [...(state.filters.activity || [])]
     };
+    
+    // Actualizar referencia de facetas para próxima comparación
+    this.previousFacets = currentFacets ? JSON.parse(JSON.stringify(currentFacets)) : null;
 
     const filtersContainer = document.getElementById('filters-container');
     if (!filtersContainer) return;
 
-    // Actualizar filtro de Actividad si cambió
-    if (activityChanged || centerChanged) {
+    // Actualizar filtro de Actividad si cambió el filtro seleccionado O si cambiaron las facetas
+    if (activityChanged || centerChanged || facetsChanged) {
       const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
       if (activityFilterElement) {
+        console.log('[FilterPanel] Actualizando filtro de ACTIVIDAD');
         activityFilterElement.replaceWith(this.#createActivityFilter());
       }
     }
 
-    // Actualizar filtro de Centro si cambió
-    if (centerChanged || activityChanged) {
+    // Actualizar filtro de Centro si cambió el filtro seleccionado O si cambiaron las facetas
+    if (centerChanged || activityChanged || facetsChanged) {
       const centerFilterElement = filtersContainer.querySelector('[data-filter-id="center"]');
       if (centerFilterElement) {
+        console.log('[FilterPanel] Actualizando filtro de CENTRO');
         centerFilterElement.replaceWith(this.#createCenterFilter());
       }
     }
@@ -140,10 +156,6 @@ export class FilterPanel {
           // Usar facetas dinámicas transformadas por FacetsService
           activityOptions = FacetsService.transformActivityFacetsToOptions(facets.libreStr01);
           console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
-        } else {
-          // Fallback: usar todas las actividades disponibles mediante FilterService
-          activityOptions = FilterService.getActivityNames(this.activities);
-          console.log('[FilterPanel] Sin facetas. Usando todas las actividades. Opciones:', activityOptions.length);
         }
 
        const filterItem = new FilterItem({
@@ -178,14 +190,6 @@ export class FilterPanel {
           // Usar facetas dinámicas transformadas por FacetsService
           centerOptions = FacetsService.transformCenterFacetsToOptions(facets.libreInt01);
           console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
-        } else {
-          // Fallback: usar todos los centros disponibles mediante FilterService
-          const allCenters = store.getCenters();
-          centerOptions = allCenters.map(center => ({
-            name: center.name,
-            id: center.id
-          }));
-          console.log('[FilterPanel] Sin facetas. Usando todos los centros. Opciones:', centerOptions.length);
         }
 
         const filterItem = new FilterItem({
@@ -416,11 +420,7 @@ export class FilterPanel {
         // Usar facetas dinámicas transformadas por FacetsService
         timeSlotOptions = FacetsService.transformTimeSlotFacetsToOptions(facets.timeSlot);
         console.log('[FilterPanel] Usando facetas para horarios. Opciones:', timeSlotOptions.length);
-      } else {
-        // Fallback: usar todos los horarios disponibles mediante FilterService
-        timeSlotOptions = FilterService.getTimeSlots(this.activities);
-        console.log('[FilterPanel] Sin facetas. Usando todos los horarios. Opciones:', timeSlotOptions.length);
-      }
+      } 
 
       const filterItem = new FilterItem({
         id: 'timeSlot',
@@ -453,10 +453,6 @@ export class FilterPanel {
         // Usar facetas dinámicas transformadas por FacetsService
         languageOptions = FacetsService.transformLanguageFacetsToOptions(facets.language);
         console.log('[FilterPanel] Usando facetas para idiomas. Opciones:', languageOptions.length);
-      } else {
-        // Fallback: usar todos los idiomas disponibles mediante FilterService
-        languageOptions = FilterService.getLanguages(this.activities);
-        console.log('[FilterPanel] Sin facetas. Usando todos los idiomas. Opciones:', languageOptions.length);
       }
 
       const filterItem = new FilterItem({
@@ -465,7 +461,7 @@ export class FilterPanel {
         options: languageOptions,
         selectedValues: state.filters.language,
         onSelect: () => this.onFilterChange(),
-        hasSearchBox: true
+        hasSearchBox: false
       });
 
       this.filterItems['language'] = filterItem;
