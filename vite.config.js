@@ -70,7 +70,7 @@ export default defineConfig(({ command }) => {
   return {
     ...commonConfig,
     // El 'base' asegura que los archivos JS/CSS se busquen en la subcarpeta 'dist' de tu app Java
-    base: '/m01-10s/spa/',
+    base: '/m01-10s/spa',
     build: {
       ...commonConfig.build,
       // RUTA DE SALIDA: Ajusta esta ruta para que apunte a tu carpeta web de Java
@@ -78,8 +78,7 @@ export default defineConfig(({ command }) => {
       emptyOutDir: true,
       assetsDir: 'assets',
       // Genera un manifest.json que puede ser útil si quieres debuguear en el servidor
-      manifest: true,
-      
+      manifest: true,      
     }
   };
 });

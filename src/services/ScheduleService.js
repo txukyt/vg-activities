@@ -40,9 +40,9 @@ export class ScheduleService {
       }
 
       // Determinar franja horaria según la hora de inicio
-      const timeSlot = this.#getTimeSlotFromTime(session.startTime);
+      /*const timeSlot = this.#getTimeSlotFromTime(session.startTime);
       
-      grouped[date][timeSlot].push(session);
+      grouped[date][timeSlot].push(session);*/
     });
 
     // Ordenar sesiones dentro de cada franja por hora

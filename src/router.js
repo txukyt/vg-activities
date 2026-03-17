@@ -6,6 +6,7 @@
  */
 
 import { store } from './store.js';
+import { BASE_PATH } from './config.js';
 
 export class Router {
   constructor(appElement) {
@@ -132,7 +133,8 @@ export class Router {
     Object.entries(params).forEach(([key, value]) => {
       url = url.replace(`:${key}`, value);
     });
-    return url;
+    // Agregar el base path desde config
+    return BASE_PATH.replace(/\/$/, '') + url; // Evita doble barra al final
   }
 
   /**
@@ -140,7 +142,20 @@ export class Router {
    * @returns {{ path: string, params: Object }} Ruta y parámetros
    */
   static getCurrentRouteFromUrl() {
-    const pathname = window.location.pathname;
+    let pathname = window.location.pathname;
+
+    // Remover el base path si está presente
+    if (BASE_PATH && BASE_PATH !== '/') {
+      const basePath = BASE_PATH.replace(/\/$/, ''); // Remover barra final si existe
+      if (pathname.startsWith(basePath)) {
+        pathname = pathname.slice(basePath.length);
+      }
+    }
+
+    // Asegurar que empieza con /
+    if (!pathname.startsWith('/')) {
+      pathname = '/' + pathname;
+    }
 
     // Detectar patrón /activity/:id/schedule/:sessionId
     const scheduleMatch = pathname.match(/^\/activity\/(\d+)\/schedule\/(.+)$/);

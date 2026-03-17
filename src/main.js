@@ -25,7 +25,7 @@ async function initApp() {
   }
 
   // Crear router
-  const router = new Router(appElement);
+  const router = new Router(appElement, );
 
   // Registrar páginas
   router.registerPage('/', SearchComponent);

@@ -33,8 +33,7 @@ export class SearchForm {
     // 3. Edad Máxima
     controlsContainer.appendChild(this.#createMaxAgeField());
 
-    // Botón limpiar
-    controlsContainer.appendChild(this.#createClearButton());
+    // controlsContainer.appendChild(this.#createClearButton());
 
     form.appendChild(controlsContainer);
     return form;
