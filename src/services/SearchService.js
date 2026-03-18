@@ -169,8 +169,8 @@ export class SearchService {
       const enriched = this.#enrichSessionData(session);
       if (index === 0) {
         console.log('[SearchService] Sesión enriquecida (muestra):', {
-          original: { sessionId: session.sessionId, activityId: session.activityId, centerId: session.centerId },
-          enriched: { centerName: enriched.centerName, activityName: enriched.activityName }
+          original: { sessionId: session.id, activityId: session.activity.id, centerId: session.center.id },
+          enriched: { centerName: enriched.center.name, activityName: enriched.activity.name }
         });
       }
       return enriched;
@@ -188,7 +188,7 @@ export class SearchService {
        sampleSession: sessions.length > 0 ? {
          id: sessions[0].id,
          centerId: sessions[0].center.id,
-         activityId: sessions[0].id,
+         activityId: sessions[0].activity.id,
          hasEnrichedNames: !!sessions[0].center.name && !!sessions[0].activity.name
        } : null
      });
@@ -250,38 +250,44 @@ export class SearchService {
        // ===== FORMATO ANIDADO O GENÉRICO =====
        // Si las sesiones ya vienen como estructura anidada, procesarlas diferentemente
        sessions.forEach(item => {
-         const centerId = item.center.id || 'unknown';
-         const centerName = item.center.name || 'Unknown Center';
 
-         if (!centerMap.has(centerId)) {
-           centerMap.set(centerId, {
+        const { center, activity } = item;
+
+         if (!centerMap.has(center.id)) {
+           centerMap.set(center.id, {
              center: {
-               id: centerId,
-               name: centerName
+               id: center.id,
+               name: center.name
              },
-             activities: []
+             activitiesMap: new Map() 
            });
          }
 
-         centerMap.get(centerId).activities.push(item);
-       });
+         const centerAux = centerMap.get(center.id);
+
+         if (!centerAux.activitiesMap.has(activity.id)) {
+           centerAux.activitiesMap.set(activity.id, {
+             id: activity.id,
+             name: activity.name,
+             description: activity.description,
+             sessions: []
+           });
+         }
+
+         const activityAux = centerAux.activitiesMap.get(activity.id);
+
+         activityAux.sessions.push(item);      
+         
+        });
+        Array.from(centerMap.values()).forEach(centerGroup => {
+          centerGroup.activities = Array.from(centerGroup.activitiesMap.values());
+          delete centerGroup.activitiesMap; // Limpiar mapa temporal
+        });
      }
 
       // PASO 5: Convertir Map a Array y ordenar
       const result = Array.from(centerMap.values());
 
-      // Ordenar por nombre de centro (con safe check para undefined)
-      /* result.sort((a, b) => {
-        const nameA = a.center?.name || '';
-        const nameB = b.center?.name || '';
-        return nameA.localeCompare(nameB);
-      }); */
-
-     /*console.log('[SearchService] Agrupación completada', {
-       totalCenters: result.length,
-       totalActivities: result.reduce((sum, g) => sum + g.activities.length, 0),
-       totalSessions: result.reduce((sum, g) => sum + g.activities.reduce((subsum, a) => subsum + a.sessions.length, 0), 0)
-     }); */
 
      return result;
    }

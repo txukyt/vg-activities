@@ -14,11 +14,16 @@ export class FilterPanel {
     this.onFilterChange = onFilterChange;
     this.filterItems = {};
     this.activities = [];
-    this.previousFilters = { center: [], activity: [] }; // Para detectar cambios
-    this.previousFacets = null; // Para detectar cambios en facetas del backend
     this.containerElement = null; // Para almacenar la referencia al contenedor
     this.previousFormCenterId = null; // Para rastrear cambios en el centro del formulario
     this.previousFormActivityId = null; // Para rastrear cambios en la actividad del formulario
+    
+    // Rastrear facetas previas de forma independiente para detectar cambios
+    this.previousCenterFacets = null;      // Faceta de Centro (libreInt01)
+    this.previousActivityFacets = null;    // Faceta de Actividad (libreStr01)
+    this.previousDayOfWeekFacets = null;   // Faceta de Día Semana (libre2)
+    this.previousTimeSlotFacets = null;    // Faceta de Horario (libre1)
+    this.previousLanguageFacets = null;    // Faceta de Idioma (idiomaCelebracion)
   }
 
   /**
@@ -76,66 +81,78 @@ export class FilterPanel {
     container.appendChild(header);
     container.appendChild(filtersContainer);
 
-    // Guardar estado actual de filtros para detectar cambios
-    this.previousFilters = {
-      center: [...(state.filters.center || [])],
-      activity: [...(state.filters.activity || [])]
-    };
-
     return container;
   }
 
   /**
-   * Actualiza los filtros de Centro y Actividad cuando cambian.
-   * Detecta cambios tanto en los filtros seleccionados como en las facetas del backend.
+   * Actualiza todos los filtros cuando sus facetas cambian.
+   * Detecta cambios de forma independiente para cada faceta:
+   * - Centro (libreInt01)
+   * - Actividad (libreStr01)
+   * - Día de Semana (libre2)
+   * - Horario (libre1)
+   * - Idioma (idiomaCelebracion)
    * @private
    */
-  #updateActivityAndCenterFilters() {
+  #updateFacets() {
     const state = store.getState();
-    const currentFacets = store.getFacets();
-    
-    // Detectar si cambió el centro o la actividad (filtros seleccionados)
-    const centerChanged = JSON.stringify(state.filters.center) !== JSON.stringify(this.previousFilters.center);
-    const activityChanged = JSON.stringify(state.filters.activity) !== JSON.stringify(this.previousFilters.activity);
+    const facets = store.getFacets();
 
-    // Detectar si cambiaron las facetas disponibles del backend
-    const facetsChanged = JSON.stringify(currentFacets) !== JSON.stringify(this.previousFacets);
-
-    // Si no hay cambios en filtros NI en facetas, no hacer nada
-    if (!centerChanged && !activityChanged && !facetsChanged) {
-      return;
-    }
-
-    console.log('[FilterPanel] #updateActivityAndCenterFilters: centerChanged=', centerChanged, ' activityChanged=', activityChanged, ' facetsChanged=', facetsChanged);
-
-    // Actualizar referencias de estado
-    this.previousFilters = {
-      center: [...(state.filters.center || [])],
-      activity: [...(state.filters.activity || [])]
-    };
-    
-    // Actualizar referencia de facetas para próxima comparación
-    this.previousFacets = currentFacets ? JSON.parse(JSON.stringify(currentFacets)) : null;
+    if (!facets) return; // No hay facetas disponibles
 
     const filtersContainer = document.getElementById('filters-container');
     if (!filtersContainer) return;
 
-    // Actualizar filtro de Actividad si cambió el filtro seleccionado O si cambiaron las facetas
-    if (activityChanged || centerChanged || facetsChanged) {
-      const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
-      if (activityFilterElement) {
-        console.log('[FilterPanel] Actualizando filtro de ACTIVIDAD');
-        activityFilterElement.replaceWith(this.#createActivityFilter());
-      }
-    }
-
-    // Actualizar filtro de Centro si cambió el filtro seleccionado O si cambiaron las facetas
-    if (centerChanged || activityChanged || facetsChanged) {
+    // Comparar cada faceta de forma independiente y actualizar si cambió
+    
+    // 1. Centro (libreInt01)
+    if (JSON.stringify(facets.libreInt01) !== JSON.stringify(this.previousCenterFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Centro cambió');
       const centerFilterElement = filtersContainer.querySelector('[data-filter-id="center"]');
       if (centerFilterElement) {
-        console.log('[FilterPanel] Actualizando filtro de CENTRO');
-        centerFilterElement.replaceWith(this.#createCenterFilter());
+        centerFilterElement.replaceWith(this.#createCenterFilter(facets.libreInt01, state.filters.center));
       }
+      this.previousCenterFacets = facets.libreInt01 ? JSON.parse(JSON.stringify(facets.libreInt01)) : null;
+    }
+
+    // 2. Actividad (libreStr01)
+    if (JSON.stringify(facets.libreStr01) !== JSON.stringify(this.previousActivityFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Actividad cambió');
+      const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
+      if (activityFilterElement) {
+        activityFilterElement.replaceWith(this.#createActivityFilter(facets.libreStr01, state.filters.activity));
+      }
+      this.previousActivityFacets = facets.libreStr01 ? JSON.parse(JSON.stringify(facets.libreStr01)) : null;
+    }
+
+    // 3. Día de Semana (libre2)
+    if (JSON.stringify(facets.libre2) !== JSON.stringify(this.previousDayOfWeekFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Día de Semana cambió');
+      const dayOfWeekFilterElement = filtersContainer.querySelector('[data-filter-id="dayOfWeek"]');
+      if (dayOfWeekFilterElement) {
+        dayOfWeekFilterElement.replaceWith(this.#createDayOfWeekFilter(facets.libre2, state.filters.dayOfWeek));
+      }
+      this.previousDayOfWeekFacets = facets.libre2 ? JSON.parse(JSON.stringify(facets.libre2)) : null;
+    }
+
+    // 4. Horario (libre1)
+    if (JSON.stringify(facets.libre1) !== JSON.stringify(this.previousTimeSlotFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Horario cambió');
+      const timeSlotFilterElement = filtersContainer.querySelector('[data-filter-id="timeSlot"]');
+      if (timeSlotFilterElement) {
+        timeSlotFilterElement.replaceWith(this.#createTimeSlotFilter(facets.libre1, state.filters.schedule));
+      }
+      this.previousTimeSlotFacets = facets.libre1 ? JSON.parse(JSON.stringify(facets.libre1)) : null;
+    }
+
+    // 5. Idioma (idiomaCelebracion)
+    if (JSON.stringify(facets.idiomaCelebracion) !== JSON.stringify(this.previousLanguageFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Idioma cambió');
+      const languageFilterElement = filtersContainer.querySelector('[data-filter-id="language"]');
+      if (languageFilterElement) {
+        languageFilterElement.replaceWith(this.#createLanguageFilter(facets.idiomaCelebracion, state.filters.language));
+      }
+      this.previousLanguageFacets = facets.idiomaCelebracion ? JSON.parse(JSON.stringify(facets.idiomaCelebracion)) : null;
     }
   }
 
@@ -224,7 +241,9 @@ export class FilterPanel {
       });
 
       this.filterItems['dayOfWeek'] = filterItem;
-      return filterItem.render();
+      const element = filterItem.render();
+      element.setAttribute('data-filter-id', 'dayOfWeek');
+      return element;
   }
 
   /**
@@ -253,7 +272,9 @@ export class FilterPanel {
       });
 
       this.filterItems['timeSlot'] = filterItem;
-      return filterItem.render();
+      const element = filterItem.render();
+      element.setAttribute('data-filter-id', 'timeSlot');
+      return element;
     }
 
   /**
@@ -279,7 +300,9 @@ export class FilterPanel {
       });
 
       this.filterItems['language'] = filterItem;
-      return filterItem.render();
+      const element = filterItem.render();
+      element.setAttribute('data-filter-id', 'language');
+      return element;
     }
 
   /**
@@ -324,10 +347,10 @@ export class FilterPanel {
   }
 
   /**
-   * Actualiza los filtros de Centro y Actividad cuando cambian en el formulario.
+   * Actualiza las facetas
    * Este método debe ser llamado desde SearchComponent cuando detecta cambios en el estado.
    */
-  updateFormFilters() {
-    this.#updateActivityAndCenterFilters();
+  updateFormFacets() {
+    this.#updateFacets();
   }
 }

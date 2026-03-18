@@ -86,7 +86,7 @@ export class SolrGateway {
         contentLength: response.headers?.get?.('content-length')
       });
 
-      if (!response.success) {
+      if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 

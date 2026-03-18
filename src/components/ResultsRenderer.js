@@ -87,17 +87,12 @@ export class ResultsRenderer {
     // Título
     const title = document.createElement('h3');
     title.className = 'activity-title';
-    title.textContent = this.#escapeHtml(activity.title);
-
-    // Centro (si está en vista plana)
-    const centerInfo = document.createElement('p');
-    centerInfo.className = 'activity-center';
-    centerInfo.textContent = this.#escapeHtml(activity.centerName);
+    title.textContent = this.#escapeHtml(activity.name);
 
     // Descripción
     const description = document.createElement('p');
     description.className = 'activity-description';
-    description.textContent = this.#escapeHtml(activity.description);
+    description.textContent = this.#escapeHtml(activity.description.slice(0, 300) + (activity.description.length > 300 ? '...' : ''));
 
     // Botón de horarios
     const detailsButton = document.createElement('button');
@@ -110,7 +105,6 @@ export class ResultsRenderer {
     });
 
     contentDiv.appendChild(title);
-    contentDiv.appendChild(centerInfo);
     contentDiv.appendChild(description);
     contentDiv.appendChild(detailsButton);
 

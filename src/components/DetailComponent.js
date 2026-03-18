@@ -123,7 +123,7 @@ export class DetailComponent {
 
     const title = document.createElement('h1');
     title.className = 'detail-title';
-    title.textContent = this.#escapeHtml(activity.title);
+    title.textContent = this.#escapeHtml(activity.name);
 
     const centerBadge = document.createElement('div');
     centerBadge.className = 'center-badge';

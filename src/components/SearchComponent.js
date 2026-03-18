@@ -328,7 +328,7 @@ export class SearchComponent {
 
     // Actualizar filtros de Centro y Actividad en el panel de filtros
     if (this.filterPanel) {
-      this.filterPanel.updateFormFilters();
+      this.filterPanel.updateFormFacets();
     }
 
     // Actualizar barra de filtros seleccionados

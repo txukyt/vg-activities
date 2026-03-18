@@ -167,11 +167,12 @@ export class Router {
     }
 
     // Detectar patrón /activity/:id
-    const activityMatch = pathname.match(/^\/activity\/(\d+)$/);
+    const activityMatch = pathname.match(/^\/activity\/([a-zA-Z0-9]+)$/);
     if (activityMatch) {
       return {
-        path: '/activity/:id',
-        params: { id: parseInt(activityMatch[1]) }
+        path: "/activity/:id",
+        // OJO: Si el ID puede ser "AGIE", no puedes usar parseInt()
+        params: { id: activityMatch[1] } 
       };
     }
 
