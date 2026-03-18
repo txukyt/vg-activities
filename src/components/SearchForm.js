@@ -1,7 +1,7 @@
 /**
  * SearchForm.js
  * Componente que renderiza el formulario de búsqueda (Sección A).
- * Incluye: búsqueda libre, checkbox plazas libres, edad máxima.
+ * Incluye: búsqueda libre, checkbox plazas libres, edad.
  */
 
 import { store } from '../store.js';
@@ -24,14 +24,12 @@ export class SearchForm {
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'search-controls';
 
-    // 1. Búsqueda Libre
     controlsContainer.appendChild(this.#createSearchTextField());
+    
+    controlsContainer.appendChild(this.#createAgeField());
 
-    // 2. Checkbox Plazas Libres
     controlsContainer.appendChild(this.#createAvailableSpotsCheckbox());
 
-    // 3. Edad Máxima
-    controlsContainer.appendChild(this.#createMaxAgeField());
 
     // controlsContainer.appendChild(this.#createClearButton());
 
@@ -111,39 +109,39 @@ export class SearchForm {
   }
 
   /**
-   * Crea el campo de edad máxima.
+   * Crea el campo de edad.
    * @private
    */
-  #createMaxAgeField() {
+  #createAgeField() {
     const group = document.createElement('div');
     group.className = 'form-group';
 
     const label = document.createElement('label');
-    label.htmlFor = 'max-age';
-    label.textContent = 'Edad Máxima:';
+    label.htmlFor = 'age';
+    label.textContent = 'Edad:';
 
     const input = document.createElement('input');
     input.type = 'number';
-    input.id = 'max-age';
+    input.id = 'age';
     input.min = '0';
     input.max = '120';
     input.placeholder = 'Dejar en blanco para sin límite';
-    input.setAttribute('aria-label', 'Edad máxima permitida');
-    input.setAttribute('aria-describedby', 'max-age-help');
+    input.setAttribute('aria-label', 'Edad permitida');
+    input.setAttribute('aria-describedby', 'age-help');
     
     const state = store.getState();
-    if (state.filters.maxAge !== undefined) {
-      input.value = state.filters.maxAge;
+    if (state.filters.age !== undefined) {
+      input.value = state.filters.age;
     }
 
     input.addEventListener('change', (e) => {
       const value = e.target.value ? parseInt(e.target.value) : undefined;
-      store.setFilters({ maxAge: value });
+      store.setFilters({ age: value });
       this.onSearch();
     });
 
     const help = document.createElement('small');
-    help.id = 'max-age-help';
+    help.id = 'age-help';
     help.textContent = 'Filtra actividades apropiadas para tu edad';
 
     group.appendChild(label);

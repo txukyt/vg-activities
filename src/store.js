@@ -5,14 +5,12 @@
  */
 
 import { FilterService } from './services/FilterService.js';
-import { StorageService } from './services/StorageService.js';
 
 class Store {
     constructor() {
         this.state = {
           filters: FilterService.getDefaultFilters(),
           results: [],
-          viewMode: 'grouped', // 'grouped' o 'list'
           loading: false,
           error: null,
           currentActivity: null,
@@ -69,13 +67,11 @@ class Store {
 
   /**
    * Actualiza los resultados de búsqueda.
-   * @param {Array|Object} results - Resultados (puede ser array o estructura agrupada)
-   * @param {string} viewMode - Modo de visualización ('grouped' o 'list')
+   * @param {Array|Object} results - Resultados (estructura agrupada por centro)
    */
-  setResults(results, viewMode = 'list') {
+  setResults(results) {
     this.setState({
       results,
-      viewMode,
       error: null
     });
   }
@@ -201,14 +197,6 @@ class Store {
     this.setFilters(FilterService.getDefaultFilters());
     // Reset paginación cuando se limpian filtros
     this.setPaginationOffset(0);
-    
-    // Intentar restaurar centros y actividades desde localStorage
-    const restoredData = StorageService.restoreInitialData();
-    if (restoredData) {
-      this.setCenters(restoredData.centers);
-      this.setActivities(restoredData.activities);
-      console.log('Store: Centros y actividades restaurados desde localStorage');
-    }
   }
 
   /**

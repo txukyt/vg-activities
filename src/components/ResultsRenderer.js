@@ -8,21 +8,16 @@
 
 export class ResultsRenderer {
   /**
-   * Renderiza los resultados según su modo de visualización.
-   * @param {Array|Object} results - Resultados (agrupados o lista plana)
-   * @param {string} viewMode - 'grouped' o 'list'
+   * Renderiza los resultados agrupados por centro.
+   * @param {Array} results - Resultados agrupados por centro
    * @param {Function} onActivityClick - Callback cuando se hace click en una actividad
    * @returns {HTMLElement} Contenedor con los resultados renderizados
    */
-  static render(results, viewMode, onActivityClick) {
+  static render(results, onActivityClick) {
     const container = document.createElement('section');
     container.className = 'results-container';
 
-    if (viewMode === 'grouped') {
-      ResultsRenderer.#renderGroupedResults(container, results, onActivityClick);
-    } else {
-      ResultsRenderer.#renderListResults(container, results, onActivityClick);
-    }
+    ResultsRenderer.#renderGroupedResults(container, results, onActivityClick);
 
     return container;
   }
@@ -74,31 +69,6 @@ export class ResultsRenderer {
     centerSection.appendChild(activitiesList);
     container.appendChild(centerSection);
   });
-  }
-
-  /**
-   * Renderiza resultados como LISTA PLANA.
-   * @private
-   */
-  static #renderListResults(container, activities, onActivityClick) {
-    if (!Array.isArray(activities) || activities.length === 0) {
-      container.innerHTML = `
-        <div class="no-results">
-          <p>No se encontraron resultados</p>
-        </div>
-      `;
-      return;
-    }
-
-    const activitiesList = document.createElement('ul');
-    activitiesList.className = 'activities-list flat';
-
-    activities.forEach(activity => {
-      const activityItem = this.#createActivityItem(activity, onActivityClick);
-      activitiesList.appendChild(activityItem);
-    });
-
-    container.appendChild(activitiesList);
   }
 
   /**

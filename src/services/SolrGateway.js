@@ -22,7 +22,7 @@ export class SolrGateway {
 
   /**
    * Realiza una búsqueda con filtros contra el backend SOLR.
-   * 
+   *
    * @param {Object} filters - Objeto con los filtros aplicados
    * @param {string} filters.searchText - Texto libre de búsqueda
    * @param {Array} filters.activity - IDs de actividades seleccionadas
@@ -30,7 +30,7 @@ export class SolrGateway {
    * @param {Array} filters.dayOfWeek - Días de la semana seleccionados
    * @param {Array} filters.timeSlot - Horarios seleccionados
    * @param {Array} filters.language - Idiomas seleccionados
-   * @param {number} filters.maxAge - Edad máxima (opcional)
+   * @param {number} filters.age - Edad (opcional)
    * @param {boolean} filters.hasAvailableSpots - Solo actividades con plazas libres
    * @param {number} offset - Items a saltar para paginación (default: 0)
    * @param {number} limit - Máximo items a devolver (default: 10)
@@ -54,7 +54,7 @@ export class SolrGateway {
         dayOfWeek: Array.isArray(filters.dayOfWeek) ? filters.dayOfWeek : [],
         timeSlot: Array.isArray(filters.timeSlot) ? filters.timeSlot : [],
         language: Array.isArray(filters.language) ? filters.language : [],
-        maxAge: filters.maxAge !== undefined ? filters.maxAge : null,
+        age: filters.age !== undefined ? filters.age : null,
         hasAvailableSpots: filters.hasAvailableSpots === true
       },
       pagination: {
@@ -86,7 +86,7 @@ export class SolrGateway {
         contentLength: response.headers?.get?.('content-length')
       });
 
-      if (!response.ok) {
+      if (!response.success) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 

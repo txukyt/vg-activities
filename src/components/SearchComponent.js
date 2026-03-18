@@ -7,7 +7,6 @@
 
 import { store } from '../store.js';
 import { SearchService } from '../services/SearchService.js';
-import { FilterService } from '../services/FilterService.js';
 import { ResultsRenderer } from './ResultsRenderer.js';
 import { SearchForm } from './SearchForm.js';
 import { FilterPanel } from './FilterPanel.js';
@@ -24,12 +23,130 @@ export class SearchComponent {
       this.loadMoreButton = null;  // Botón "Ver más"
       this.previousFiltersJson = null;   // JSON string anterior para comparar
       this.lastPerformedSearch = null;   // Rastrear última búsqueda para evitar duplicados
-   }
+    }
+    
+    /**
+     * Renderiza el componente completo.
+     * @returns {HTMLElement} Elemento del componente
+     */
+    async render() {
+      const container = document.createElement('div');
+      container.className = 'search-component';
+    
+      // CRÍTICO: Suscribirse PRIMERO, antes de cualquier búsqueda
+      // De lo contrario, la búsqueda inicial no dispara #updateResults()
+      this.unsubscribe = store.subscribe(() => {
+        this.#updateResults();
+      });
+    
+      // Realizar una búsqueda general sin filtros al inicio si no hay resultados
+      let state = store.getState();
+      if (state.results.length === 0 && !state.loading && !state.error) {
+        await this.#performSearch();
+        state = store.getState();
+      }
+    
+      // Header
+      const header = document.createElement('header');
+      header.className = 'search-header';
+      header.innerHTML = `
+        <h1>Inscripción de Actividades</h1>
+        <p>Busca e inscríbete en las actividades de nuestros centros cívicos</p>
+      `;
+      container.appendChild(header);
+    
+      // Contenedor de layout 2 columnas (main + aside)
+      const layoutContainer = document.createElement('div');
+      layoutContainer.className = 'search-layout';
+    
+      // Columna 1: <main> con formulario + resultados
+      const mainElement = document.createElement('main');
+      mainElement.className = 'search-main';
+    
+      // Formulario de búsqueda (dentro de main)
+      this.searchForm = new SearchForm(() => this.#performSearch());
+      mainElement.appendChild(await this.searchForm.render());
+    
+      // Barra de filtros seleccionados (entre formulario y resultados)
+      this.selectedFiltersBar = new SelectedFiltersBar(() => this.#performSearch());
+      mainElement.appendChild(await this.selectedFiltersBar.render());
+    
+      // Resultados (dentro de main)
+      const resultsWrapper = document.createElement('div');
+      resultsWrapper.className = 'results-wrapper';
+      resultsWrapper.id = 'results-wrapper';
+    
+      if (state.loading) {
+        resultsWrapper.innerHTML = `
+          <div class="loading">
+            <p>Cargando resultados...</p>
+          </div>
+        `;
+      } else if (state.error) {
+        resultsWrapper.innerHTML = `
+          <div class="error">
+            <p>${this.#escapeHtml(state.error)}</p>
+          </div>
+        `;
+      } else if (state.results.length > 0) {
+        const resultsElement = ResultsRenderer.render(
+          state.results,
+          (activityId) => this.#handleActivityClick(activityId)
+        );
+        resultsWrapper.appendChild(resultsElement);
+      } else {
+        resultsWrapper.innerHTML = `
+          <div class="no-results">
+            <p>Realiza una búsqueda para ver los resultados</p>
+          </div>
+        `;
+      }
+    
+      mainElement.appendChild(resultsWrapper);
+      layoutContainer.appendChild(mainElement);
+    
+      // Columna 2: Filtros en aside
+      const filtersSidebar = document.createElement('aside');
+      filtersSidebar.className = 'filters-sidebar';
+    
+      this.filterPanel = new FilterPanel(() => this.#performSearch());
+      const filterPanelElement = await this.filterPanel.render();
+      filtersSidebar.appendChild(filterPanelElement);
+    
+      layoutContainer.appendChild(filtersSidebar);
+      container.appendChild(layoutContainer);
+    
+      // Overlay para cerrar drawer al hacer click afuera (móvil)
+      const overlayElement = document.createElement('div');
+      overlayElement.id = 'filters-drawer-overlay';
+      overlayElement.className = 'filters-drawer-overlay';
+      overlayElement.addEventListener('click', () => {
+        store.setFiltersDrawerOpen(false);
+        this.#updateFiltersDrawerVisibility();
+      });
+      container.appendChild(overlayElement);
+    
+      // Botón toggle de filtros (solo visible en móvil) - Posicionado al final para mayor z-index
+      const filtersToggleContainer = document.createElement('div');
+      filtersToggleContainer.className = 'filters-toggle-container';
+      const filtersToggleButton = document.createElement('button');
+      filtersToggleButton.className = 'btn-filters-toggle';
+      filtersToggleButton.textContent = '📋 Filtros';
+      filtersToggleButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evitar que el click se propague
+        store.toggleFiltersDrawer();
+        this.#updateFiltersDrawerVisibility();
+      });
+      filtersToggleContainer.appendChild(filtersToggleButton);
+      container.appendChild(filtersToggleContainer);
+    
+      return container;
+    }
 
    /**
     * Actualiza la visibilidad del drawer de filtros.
     * @private
-    */
+   */
    #updateFiltersDrawerVisibility() {
      const state = store.getState();
      const filtersSidebar = document.querySelector('.filters-sidebar');
@@ -54,124 +171,6 @@ export class SearchComponent {
      }
    }
 
-   /**
-    * Renderiza el componente completo.
-    * @returns {HTMLElement} Elemento del componente
-    */
-   async render() {
-     const container = document.createElement('div');
-     container.className = 'search-component';
-
-     // CRÍTICO: Suscribirse PRIMERO, antes de cualquier búsqueda
-     // De lo contrario, la búsqueda inicial no dispara #updateResults()
-     this.unsubscribe = store.subscribe(() => {
-       this.#updateResults();
-     });
-
-     // Realizar una búsqueda general sin filtros al inicio si no hay resultados
-     let state = store.getState();
-     if (state.results.length === 0 && !state.loading && !state.error) {
-       await this.#performSearch();
-       state = store.getState();
-     }
-
-     // Header
-     const header = document.createElement('header');
-     header.className = 'search-header';
-     header.innerHTML = `
-       <h1>Inscripción de Actividades</h1>
-       <p>Busca e inscríbete en las actividades de nuestros centros cívicos</p>
-     `;
-     container.appendChild(header);
-
-     // Contenedor de layout 2 columnas (main + aside)
-     const layoutContainer = document.createElement('div');
-     layoutContainer.className = 'search-layout';
-
-     // Columna 1: <main> con formulario + resultados
-     const mainElement = document.createElement('main');
-     mainElement.className = 'search-main';
-
-     // Formulario de búsqueda (dentro de main)
-     this.searchForm = new SearchForm(() => this.#performSearch());
-     mainElement.appendChild(await this.searchForm.render());
-
-     // Barra de filtros seleccionados (entre formulario y resultados)
-     this.selectedFiltersBar = new SelectedFiltersBar(() => this.#performSearch());
-     mainElement.appendChild(await this.selectedFiltersBar.render());
-
-     // Resultados (dentro de main)
-     const resultsWrapper = document.createElement('div');
-     resultsWrapper.className = 'results-wrapper';
-     resultsWrapper.id = 'results-wrapper';
-
-     if (state.loading) {
-       resultsWrapper.innerHTML = `
-         <div class="loading">
-           <p>Cargando resultados...</p>
-         </div>
-       `;
-     } else if (state.error) {
-       resultsWrapper.innerHTML = `
-         <div class="error">
-           <p>${this.#escapeHtml(state.error)}</p>
-         </div>
-       `;
-     } else if (state.results.length > 0) {
-       const resultsElement = ResultsRenderer.render(
-         state.results,
-         state.viewMode,
-         (activityId) => this.#handleActivityClick(activityId)
-       );
-       resultsWrapper.appendChild(resultsElement);
-     } else {
-       resultsWrapper.innerHTML = `
-         <div class="no-results">
-           <p>Realiza una búsqueda para ver los resultados</p>
-         </div>
-       `;
-     }
-
-     mainElement.appendChild(resultsWrapper);
-     layoutContainer.appendChild(mainElement);
-
-     // Columna 2: Filtros en aside
-     const filtersSidebar = document.createElement('aside');
-     filtersSidebar.className = 'filters-sidebar';
-
-     this.filterPanel = new FilterPanel(() => this.#performSearch());
-     const filterPanelElement = await this.filterPanel.render();
-     filtersSidebar.appendChild(filterPanelElement);
-
-     layoutContainer.appendChild(filtersSidebar);
-     container.appendChild(layoutContainer);
-
-     // Overlay para cerrar drawer al hacer click afuera (móvil)
-     const overlayElement = document.createElement('div');
-     overlayElement.id = 'filters-drawer-overlay';
-     overlayElement.className = 'filters-drawer-overlay';
-     overlayElement.addEventListener('click', () => {
-       store.setFiltersDrawerOpen(false);
-       this.#updateFiltersDrawerVisibility();
-     });
-     container.appendChild(overlayElement);
-
-     // Botón toggle de filtros (solo visible en móvil) - Posicionado al final para mayor z-index
-     const filtersToggleContainer = document.createElement('div');
-     filtersToggleContainer.className = 'filters-toggle-container';
-     const filtersToggleButton = document.createElement('button');
-     filtersToggleButton.className = 'btn-filters-toggle';
-     filtersToggleButton.textContent = '📋 Filtros';
-     filtersToggleButton.addEventListener('click', (e) => {
-       e.stopPropagation(); // Evitar que el click se propague
-       store.toggleFiltersDrawer();
-       this.#updateFiltersDrawerVisibility();
-     });
-     filtersToggleContainer.appendChild(filtersToggleButton);
-     container.appendChild(filtersToggleContainer);
-
-     return container;
-   }
 
 
 
@@ -232,53 +231,46 @@ export class SearchComponent {
         const existingResults = store.getState().results;
         const newResults = result.data;
         
-        let mergedResults;
-        if (result.viewMode === 'grouped') {
-          // Modo agrupado: fusionar centros
-          const centerMap = new Map();
-          
-          // Agregar centros existentes
-          existingResults.forEach(centerGroup => {
-            centerMap.set(centerGroup.center.id, {
-              center: centerGroup.center,
-              activities: [...centerGroup.activities]
+        // Fusionar centros (siempre en vista agrupada)
+        const centerMap = new Map();
+        
+        // Agregar centros existentes
+        existingResults.forEach(centerGroup => {
+          centerMap.set(centerGroup.center.id, {
+            center: centerGroup.center,
+            activities: [...centerGroup.activities]
+          });
+        });
+        
+        // Agregar nuevos centros / actividades
+        newResults.forEach(newCenterGroup => {
+          const centerId = newCenterGroup.center.id;
+          if (centerMap.has(centerId)) {
+            // Centro existe: agregar actividades nuevas
+            const existingGroup = centerMap.get(centerId);
+            newCenterGroup.activities.forEach(newActivity => {
+              // No agregar si ya existe con el mismo ID
+              if (!existingGroup.activities.some(a => a.id === newActivity.id)) {
+                existingGroup.activities.push(newActivity);
+              }
             });
+          } else {
+            // Centro nuevo
+            centerMap.set(centerId, newCenterGroup);
+          }
+        });
+        
+        // Convertir map a array ordenado
+        const mergedResults = Array.from(centerMap.values())
+          .sort((a, b) => {
+            const nameA = a.center?.name || '';
+            const nameB = b.center?.name || '';
+            return nameA.localeCompare(nameB);
           });
-          
-          // Agregar nuevos centros / actividades
-          newResults.forEach(newCenterGroup => {
-            const centerId = newCenterGroup.center.id;
-            if (centerMap.has(centerId)) {
-              // Centro existe: agregar actividades nuevas
-              const existingGroup = centerMap.get(centerId);
-              newCenterGroup.activities.forEach(newActivity => {
-                // No agregar si ya existe con el mismo ID
-                if (!existingGroup.activities.some(a => a.id === newActivity.id)) {
-                  existingGroup.activities.push(newActivity);
-                }
-              });
-            } else {
-              // Centro nuevo
-              centerMap.set(centerId, newCenterGroup);
-            }
-          });
-          
-           // Convertir map a array ordenado
-           mergedResults = Array.from(centerMap.values())
-             .sort((a, b) => {
-               const nameA = a.center?.name || '';
-               const nameB = b.center?.name || '';
-               return nameA.localeCompare(nameB);
-             });
-        } else {
-          // Modo lista: concatenar directamente
-          mergedResults = [...existingResults, ...newResults];
-        }
         
         // IMPORTANTE: Un solo setState para evitar múltiples re-renders
         store.setState({
           results: mergedResults,
-          viewMode: result.viewMode,
           facets: result.facets,
           pagination: {
             offset: result.offset + result.limit,
@@ -295,7 +287,6 @@ export class SearchComponent {
         store.setState({
           results: result.data,
           facets: result.facets,
-          viewMode: result.viewMode,
           pagination: {
             offset: result.offset + result.limit,
             limit: result.limit,
@@ -371,7 +362,6 @@ export class SearchComponent {
       console.log('[SearchComponent] Renderizando', state.results.length, 'resultados. hasMore:', state.pagination.hasMore);
       const resultsElement = ResultsRenderer.render(
         state.results,
-        state.viewMode,
         (activityId) => this.#handleActivityClick(activityId)
       );
       resultsWrapper.appendChild(resultsElement);

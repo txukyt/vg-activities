@@ -212,7 +212,8 @@ export class SelectedFiltersBar {
       activity: [],
       dayOfWeek: [],
       timeSlot: [],
-      language: []
+      language: [],
+      schedule: []
     });
     this.onFilterChange();
   }

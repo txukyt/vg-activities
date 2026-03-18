@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig(({ command }) => {
   
   const contextPath = '/m01-10s';
-  const outDir = 'D:\\DEV-WAS8\\WS\\WEB\\m01-10s-war\\src\\main\\webapp\\spa\\';
+  const outDir = 'D:\\DEV-WAS8\\WS\\WEB\\m01-10s-war\\src\\main\\webapp\\activities\\';
 
   // 1. CONFIGURACIÓN COMÚN
   const commonConfig = {
@@ -70,11 +70,11 @@ export default defineConfig(({ command }) => {
   return {
     ...commonConfig,
     // El 'base' asegura que los archivos JS/CSS se busquen en la subcarpeta 'dist' de tu app Java
-    base: '/m01-10s/spa',
+    base: '/m01-10s/activities',
     build: {
       ...commonConfig.build,
       // RUTA DE SALIDA: Ajusta esta ruta para que apunte a tu carpeta web de Java
-      outDir: 'D:\\DEV-WAS8\\WS\\WEB\\m01-10s-war\\src\\main\\webapp\\spa\\', 
+      outDir: 'D:\\DEV-WAS8\\WS\\WEB\\m01-10s-war\\src\\main\\webapp\\activities\\', 
       emptyOutDir: true,
       assetsDir: 'assets',
       // Genera un manifest.json que puede ser útil si quieres debuguear en el servidor

@@ -79,9 +79,9 @@ export class FilterService {
   /**
    * Obtiene opciones de edad basadas en las sesiones disponibles.
    * @param {Array} activities - Array de actividades
-   * @returns {Array} Array de rangos de edad únicos disponibles
+   * @returns {Array} Array de edades únicas disponibles
    */
-  static getAvailableAgeRanges(activities) {
+  static getAvailableAges(activities) {
     const ageRanges = [];
     
     activities.forEach(activity => {
@@ -129,11 +129,9 @@ export class FilterService {
   static validateFilters(currentFilters) {
     const errors = [];
 
-    // Validar rangos de edad
-    if (currentFilters.minAge !== undefined &&
-        currentFilters.maxAge !== undefined &&
-        currentFilters.minAge > currentFilters.maxAge) {
-      errors.push('La edad mínima no puede ser mayor que la máxima');
+    // Validar edad
+    if (currentFilters.age !== undefined && currentFilters.age < 0) {
+      errors.push('La edad no puede ser negativa');
     }
 
     return {
@@ -151,7 +149,7 @@ export class FilterService {
        // Sección A: Búsqueda Libre
        searchText: '',
        hasAvailableSpots: true,
-       maxAge: undefined,
+       age: undefined,
        
        // Sección B: Filtros
        activity: [],
@@ -159,6 +157,7 @@ export class FilterService {
        dayOfWeek: [],
        timeSlot: [],
        language: [],
+       schedule: [],
        
        // A/B Testing
        dayOfWeekViewMode: 'grouped'

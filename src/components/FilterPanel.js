@@ -14,7 +14,6 @@ export class FilterPanel {
     this.onFilterChange = onFilterChange;
     this.filterItems = {};
     this.activities = [];
-    this.dayWeekViewMode = 'grouped'; // Para A/B Testing
     this.previousFilters = { center: [], activity: [] }; // Para detectar cambios
     this.previousFacets = null; // Para detectar cambios en facetas del backend
     this.containerElement = null; // Para almacenar la referencia al contenedor
@@ -27,8 +26,9 @@ export class FilterPanel {
    * @returns {HTMLElement} Contenedor de filtros
    */
   async render() {
-    // Obtener actividades del store
-    this.activities = store.getActivities();
+    const state = store.getState();
+    const facets = state.facets;
+    const filters = state.filters;
 
     const container = document.createElement('section');
     container.className = 'filter-panel';
@@ -46,29 +46,28 @@ export class FilterPanel {
     filtersContainer.id = 'filters-container'; // Agregar ID para poder actualizar
 
     // 1. Centro
-     const centerFilter = this.#createCenterFilter();
-     if (centerFilter) {
-       filtersContainer.appendChild(centerFilter);
-     }
+      filtersContainer.appendChild(
+        this.#createCenterFilter(facets.libreInt01, filters.center)
+      );
      
      // 2. Actividad
      filtersContainer.appendChild(
-       this.#createActivityFilter()
+       this.#createActivityFilter(facets.libreStr01, filters.activity)
      );
 
      // 3. Día Semana (con A/B Testing)
      filtersContainer.appendChild(
-       this.#createDayOfWeekFilter()
+       this.#createDayOfWeekFilter(facets.libre2, filters.dayOfWeek)
      );
 
      // 4. Horario
      filtersContainer.appendChild(
-       this.#createTimeSlotFilter()
+       this.#createTimeSlotFilter(facets.libre1, filters.schedule)
      );
 
      // 5. Idioma
     filtersContainer.appendChild(
-      this.#createLanguageFilter()
+      this.#createLanguageFilter(facets.idiomaCelebracion, filters.language)
     );
 
     // Botón limpiar filtros
@@ -78,7 +77,6 @@ export class FilterPanel {
     container.appendChild(filtersContainer);
 
     // Guardar estado actual de filtros para detectar cambios
-    const state = store.getState();
     this.previousFilters = {
       center: [...(state.filters.center || [])],
       activity: [...(state.filters.activity || [])]
@@ -145,16 +143,12 @@ export class FilterPanel {
    * Crea el filtro de Actividad.
    * @private
    */
-      #createActivityFilter() {
-        const state = store.getState();
-        
-        // Obtener facetas del store si existen
-        const facets = store.getFacets();
+      #createActivityFilter(facet, filter) {
         let activityOptions = [];
 
-        if (facets && facets.libreStr01) {
+        if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
-          activityOptions = FacetsService.transformActivityFacetsToOptions(facets.libreStr01);
+          activityOptions = FacetsService.transformActivityFacetsToOptions(facet);
           console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
         }
 
@@ -162,7 +156,7 @@ export class FilterPanel {
          id: 'activity',
          label: 'Actividad',
          options: activityOptions,
-         selectedValues: state.filters.activity || [],
+         selectedValues: filter || [],
          onSelect: () => this.onFilterChange(),
          hasSearchBox: true
        });
@@ -179,16 +173,12 @@ export class FilterPanel {
      * Si hay un centro seleccionado, no muestra el filtro de centros.
      * @private
      */
-      #createCenterFilter() {
-        const state = store.getState();
-        
-        // Obtener facetas del store si existen
-        const facets = store.getFacets();
+      #createCenterFilter(facet, filter) {
         let centerOptions = [];
 
-        if (facets && facets.libreInt01) {
+        if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
-          centerOptions = FacetsService.transformCenterFacetsToOptions(facets.libreInt01);
+          centerOptions = FacetsService.transformCenterFacetsToOptions(facet);
           console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
         }
 
@@ -196,7 +186,7 @@ export class FilterPanel {
           id: 'center',
           label: 'Centro',
           options: centerOptions,
-          selectedValues: state.filters.center || [],
+          selectedValues: filter || [],
           onSelect: () => this.onFilterChange(),
           hasSearchBox: true
         });
@@ -211,214 +201,42 @@ export class FilterPanel {
 
 
   /**
-   * Crea el filtro de Día de la Semana (A/B Testing).
+   * Crea el filtro de Día de la Semana.
+   * Muestra una lista simple de días sin agrupación.
    * @private
    */
-  #createDayOfWeekFilter() {
-    const filterContainer = document.createElement('details');
-    filterContainer.className = 'filter-item day-week-filter details-bar';
-    filterContainer.setAttribute('data-filter-id', 'dayOfWeek');
-    filterContainer.open = true;
+  #createDayOfWeekFilter(facet, filter) {
+    let dayOptions = [];
 
-    // Header (dentro de summary)
-    const header = document.createElement('summary');
-    header.className = 'filter-item-header';
-
-    const label = document.createElement('span');
-    label.className = 'filter-label';
-    label.textContent = 'Día de la Semana';
-
-    header.appendChild(label);
-    filterContainer.appendChild(header);
-
-    // Contenido desplegable
-    const detailsContent = document.createElement('div');
-    detailsContent.className = 'details-content';
-
-    // Toggle de vista (dentro del contenido, no en el summary)
-    const toggleContainer = document.createElement('div');
-    toggleContainer.className = 'day-week-toggle';
-
-    const toggleLabel = document.createElement('span');
-    toggleLabel.className = 'toggle-label';
-    toggleLabel.textContent = 'Vista: ';
-
-    const toggleSwitch = document.createElement('button');
-    toggleSwitch.type = 'button';
-    toggleSwitch.className = 'toggle-switch';
-    toggleSwitch.setAttribute('aria-label', 'Alternar entre vista agrupada y desglosada');
-    toggleSwitch.setAttribute('data-mode', 'grouped');
-    toggleSwitch.textContent = 'Agrupado';
-
-    toggleSwitch.addEventListener('click', () => {
-      this.dayWeekViewMode = this.dayWeekViewMode === 'grouped' ? 'list' : 'grouped';
-      toggleSwitch.setAttribute('data-mode', this.dayWeekViewMode);
-      toggleSwitch.textContent = this.dayWeekViewMode === 'grouped' ? 'Agrupado' : 'Desglosado';
-      
-      // Actualizar store
-      store.setFilters({ dayOfWeekViewMode: this.dayWeekViewMode });
-
-       // Re-renderizar opciones
-       const optionsContainer = detailsContent.querySelector('.filter-options');
-       optionsContainer.innerHTML = '';
-       
-       // Obtener facetas del store si existen
-        const facets = store.getFacets();
-        const days = facets && facets.dayOfWeek
-          ? FacetsService.transformDayOfWeekFacetsToOptions(facets.dayOfWeek)
-          : FilterService.getDaysOfWeek(this.activities);
-      
-      if (this.dayWeekViewMode === 'grouped') {
-        optionsContainer.appendChild(this.#renderGroupedDays(days));
-      } else {
-        optionsContainer.appendChild(this.#renderFlatDays(days));
+      if (facet) {
+        // Usar facetas dinámicas transformadas por FacetsService
+        dayOptions = FacetsService.transformDayOfWeekFacetsToOptions(facet);
+        console.log('[FilterPanel] Usando facetas para días de la semana. Opciones:', dayOptions.length);
       }
 
-      // Reaplicar selecciones
-      const selectedDays = store.getState().filters.dayOfWeek;
-      selectedDays.forEach(day => {
-        const checkbox = filterContainer.querySelector(`input[value="${day}"]`);
-        if (checkbox) {
-          checkbox.checked = true;
-        }
+      const filterItem = new FilterItem({
+        id: 'dayOfWeek',
+        label: 'Día de la Semana',
+        options: dayOptions,
+        selectedValues: filter,
+        onSelect: () => this.onFilterChange(),
+        hasSearchBox: false
       });
 
-      this.onFilterChange();
-    });
-
-    toggleContainer.appendChild(toggleLabel);
-    toggleContainer.appendChild(toggleSwitch);
-    detailsContent.appendChild(toggleContainer);
-
-     // Opciones
-     const optionsContainer = document.createElement('div');
-     optionsContainer.className = 'filter-options';
-     optionsContainer.id = 'filter-options-dayOfWeek';
-
-       // Obtener facetas del store si existen
-        const facets = store.getFacets();
-        const days = facets && facets.dayOfWeek
-          ? FacetsService.transformDayOfWeekFacetsToOptions(facets.dayOfWeek)
-          : FilterService.getDaysOfWeek(this.activities);
-     
-     optionsContainer.appendChild(this.#renderGroupedDays(days)); // Default grouped
-
-    detailsContent.appendChild(optionsContainer);
-    filterContainer.appendChild(detailsContent);
-
-    // Listeners para cambios
-    filterContainer.addEventListener('change', (e) => {
-      if (e.target.type === 'checkbox') {
-        const selectedValues = Array.from(
-          filterContainer.querySelectorAll('input[type="checkbox"]:checked')
-        ).map(cb => cb.value);
-
-        store.setFilters({ dayOfWeek: selectedValues });
-        this.onFilterChange();
-      }
-    });
-
-    return filterContainer;
-  }
-
-  /**
-   * Renderiza días agrupados.
-   * @private
-   */
-  #renderGroupedDays(days) {
-    const container = document.createElement('div');
-    container.className = 'filter-options-grouped day-week-grouped';
-
-    const groups = [
-      { label: 'L-X', days: ['lunes', 'martes', 'miércoles'] },
-      { label: 'M-J', days: ['martes', 'miércoles', 'jueves'] },
-      { label: 'V-S', days: ['viernes', 'sábado'] },
-      { label: 'D', days: ['domingo'] }
-    ];
-
-    groups.forEach(group => {
-      const filteredDays = group.days.filter(d => days.includes(d));
-      if (filteredDays.length > 0) {
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'filter-option-group';
-
-        const groupTitle = document.createElement('div');
-        groupTitle.className = 'filter-option-group-title';
-        groupTitle.textContent = group.label;
-        groupDiv.appendChild(groupTitle);
-
-        const groupContent = document.createElement('div');
-        groupContent.className = 'filter-option-group-content';
-
-        filteredDays.forEach(day => {
-          const optionDiv = document.createElement('div');
-          optionDiv.className = 'filter-option';
-
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.id = `dayOfWeek-${day}`;
-          checkbox.value = day;
-
-          const label = document.createElement('label');
-          label.htmlFor = `dayOfWeek-${day}`;
-          label.textContent = day.charAt(0).toUpperCase() + day.slice(1);
-
-          optionDiv.appendChild(checkbox);
-          optionDiv.appendChild(label);
-          groupContent.appendChild(optionDiv);
-        });
-
-        groupDiv.appendChild(groupContent);
-        container.appendChild(groupDiv);
-      }
-    });
-
-    return container;
-  }
-
-  /**
-   * Renderiza días desglosados.
-   * @private
-   */
-  #renderFlatDays(days) {
-    const container = document.createElement('div');
-    container.className = 'filter-options-list day-week-list';
-
-    days.forEach(day => {
-      const optionDiv = document.createElement('div');
-      optionDiv.className = 'filter-option';
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = `dayOfWeek-${day}`;
-      checkbox.value = day;
-
-      const label = document.createElement('label');
-      label.htmlFor = `dayOfWeek-${day}`;
-      label.textContent = day.charAt(0).toUpperCase() + day.slice(1);
-
-      optionDiv.appendChild(checkbox);
-      optionDiv.appendChild(label);
-      container.appendChild(optionDiv);
-    });
-
-    return container;
+      this.filterItems['dayOfWeek'] = filterItem;
+      return filterItem.render();
   }
 
   /**
    * Crea el filtro de Horario.
    * @private
    */
-    #createTimeSlotFilter() {
-      const state = store.getState();
-      
-      // Obtener facetas del store si existen
-      const facets = store.getFacets();
+    #createTimeSlotFilter(facet, filter) {
       let timeSlotOptions = [];
 
-      if (facets && facets.timeSlot) {
+      if (facet) {
         // Usar facetas dinámicas transformadas por FacetsService
-        timeSlotOptions = FacetsService.transformTimeSlotFacetsToOptions(facets.timeSlot);
+        timeSlotOptions = FacetsService.transformTimeSlotFacetsToOptions(facet);
         console.log('[FilterPanel] Usando facetas para horarios. Opciones:', timeSlotOptions.length);
       } 
 
@@ -426,7 +244,7 @@ export class FilterPanel {
         id: 'timeSlot',
         label: 'Horario',
         options: timeSlotOptions,
-        selectedValues: state.filters.timeSlot.map(slot => {
+        selectedValues: filter.map(slot => {
           const slotMap = { 'Mañana': 'manana', 'Tarde': 'tarde', 'Mañana y Tarde': 'manana_y_tarde' };
           return Object.keys(slotMap).includes(slot) ? slotMap[slot] : slot;
         }),
@@ -442,16 +260,12 @@ export class FilterPanel {
    * Crea el filtro de Idioma.
    * @private
    */
-    #createLanguageFilter() {
-      const state = store.getState();
-      
-      // Obtener facetas del store si existen
-      const facets = store.getFacets();
+    #createLanguageFilter(facet, filter) {
       let languageOptions = [];
 
-      if (facets && facets.language) {
+      if (facet) {
         // Usar facetas dinámicas transformadas por FacetsService
-        languageOptions = FacetsService.transformLanguageFacetsToOptions(facets.language);
+        languageOptions = FacetsService.transformLanguageFacetsToOptions(facet);
         console.log('[FilterPanel] Usando facetas para idiomas. Opciones:', languageOptions.length);
       }
 
@@ -459,7 +273,7 @@ export class FilterPanel {
         id: 'language',
         label: 'Idioma',
         options: languageOptions,
-        selectedValues: state.filters.language,
+        selectedValues: filter,
         onSelect: () => this.onFilterChange(),
         hasSearchBox: false
       });
@@ -484,14 +298,7 @@ export class FilterPanel {
 
     button.addEventListener('click', () => {
       // Resetear solo Sección B (filtros)
-      store.setFilters({
-        activity: [],
-        center: [],
-        dayOfWeek: [],
-        timeSlot: [],
-        language: [],
-        dayOfWeekViewMode: 'grouped'
-      });
+      store.resetFilters();
 
       // Limpiar inputs
       Object.values(this.filterItems).forEach(filterItem => {
@@ -509,7 +316,6 @@ export class FilterPanel {
         cb.checked = false;
       });
 
-      this.dayWeekViewMode = 'grouped';
       this.onFilterChange();
     });
 
