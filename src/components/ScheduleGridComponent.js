@@ -9,7 +9,6 @@ export class ScheduleGridComponent {
    constructor(sessions = [], onSessionClick = null) {
      this.sessions = sessions;
      this.onSessionClick = onSessionClick;
-     this.groupedSessions = ScheduleService.groupSessionsByDateAndTimeSlot(sessions);
      this.sortedDates = ScheduleService.getUniqueSortedDates(sessions);
    }
 
@@ -61,54 +60,56 @@ export class ScheduleGridComponent {
     const group = document.createElement('div');
     group.className = 'schedule-date-group';
 
-    // Título de la fecha
-    const title = document.createElement('h3');
-    title.className = 'schedule-date-title';
-    title.textContent = ScheduleService.formatDate(date);
-    group.appendChild(title);
+    // Convertir la fecha YYYY-MM-DD a YYYYMMDD para comparar con startsAt
+    const [yr, mn, dy] = date.split('-');
+    const dateYYYYMMDD = `${yr}${mn}${dy}`;
 
-    // Row con 3 columnas (mañana, tarde, noche)
-    const row = document.createElement('div');
-    row.className = 'schedule-row';
-
-    const slots = ['manana', 'tarde', 'noche'];
-    slots.forEach(slot => {
-      const slotElement = this.#createTimeSlot(date, slot);
-      row.appendChild(slotElement);
+    // Obtener la primera sesión para extraer startsAt y endsAt
+    const firstSessionForDate = this.sessions.find(session => {
+      const startsAt = session.eventDates?.startsAt;
+      return startsAt && startsAt === dateYYYYMMDD;
     });
 
-    group.appendChild(row);
-    return group;
-  }
+    // Título de la fecha con rango (startsAt - endsAt)
+    const title = document.createElement('h3');
+    title.className = 'schedule-date-title';
+    if (firstSessionForDate && firstSessionForDate.eventDates?.endsAt) {
+      const dateRange = this.#formatDateRange(
+        firstSessionForDate.eventDates.startsAt,
+        firstSessionForDate.eventDates.endsAt
+      );
+      title.textContent = dateRange;
+    } else {
+      title.textContent = ScheduleService.formatDate(date);
+    }
+    group.appendChild(title);
 
-  /**
-   * Crea una celda de franja horaria.
-   * @private
-   * @param {string} date - Fecha en formato YYYY-MM-DD
-   * @param {string} slot - 'manana', 'tarde' o 'noche'
-   * @returns {HTMLElement} Elemento de celda
-   */
-  #createTimeSlot(date, slot) {
-    const cell = document.createElement('div');
-    cell.className = `schedule-slot schedule-slot-${slot}`;
+    // Filtrar todas las sesiones que pertenecen a esta fecha
+    const sessionsForDate = this.sessions.filter(session => {
+      const startsAt = session.eventDates?.startsAt;
+      return startsAt && startsAt === dateYYYYMMDD;
+    });
 
-    const sessions = this.groupedSessions[date][slot];
+    // Crear contenedor para las sesiones
+    const sessionsContainer = document.createElement('div');
+    sessionsContainer.className = 'schedule-sessions-container';
 
-    if (sessions.length === 0) {
-      // Celda vacía
+    if (sessionsForDate.length === 0) {
+      // No hay sesiones para esta fecha
       const empty = document.createElement('div');
       empty.className = 'schedule-session-empty';
       empty.textContent = '-';
-      cell.appendChild(empty);
+      sessionsContainer.appendChild(empty);
     } else {
-      // Renderizar cada sesión en la franja
-      sessions.forEach(session => {
+      // Renderizar cada sesión dentro del grupo
+      sessionsForDate.forEach(session => {
         const sessionElement = this.#createSessionCard(session);
-        cell.appendChild(sessionElement);
+        sessionsContainer.appendChild(sessionElement);
       });
     }
 
-    return cell;
+    group.appendChild(sessionsContainer);
+    return group;
   }
 
   /**
@@ -125,31 +126,38 @@ export class ScheduleGridComponent {
     const timeRange = document.createElement('div');
     timeRange.className = 'schedule-session-time';
     timeRange.textContent = ScheduleService.formatTimeRange(
-      session.startTime,
-      session.endTime
+      session.eventDates.startHour,
+      session.eventDates.endHour
     );
     card.appendChild(timeRange);
 
-    // Plazas disponibles
+    // Idiomas (si existen)
+    if (session.celebrationLanguages && Array.isArray(session.celebrationLanguages) && session.celebrationLanguages.length > 0) {
+      const languagesDiv = this.#renderLanguages(session.celebrationLanguages);
+      card.appendChild(languagesDiv);
+    }
+
+    // Días de la sesión (si existen)
+    if (session.days) {
+      const daysDiv = this.#renderDays(session.days);
+      card.appendChild(daysDiv);
+    }
+
+    // Plazas disponibles con indicador visual
     const spotsDiv = document.createElement('div');
     spotsDiv.className = 'schedule-session-spots';
     
+    const spotsContainer = document.createElement('div');
+    const availabilityClass = session.hasAvailableSpots ? 'schedule-available' : 'schedule-full';
+    spotsContainer.className = `schedule-availability-indicator ${availabilityClass}`;
+    
     const spotsText = document.createElement('span');
     spotsText.className = 'spots-text';
-    spotsText.textContent = `${session.availableSpots}/${session.totalSpots} plazas`;
-    spotsDiv.appendChild(spotsText);
+    spotsText.textContent = session.hasAvailableSpots ? '🟢 Plazas disponibles' : '🔴 Completa';
+    spotsContainer.appendChild(spotsText);
+    
+    spotsDiv.appendChild(spotsContainer);
 
-    // Barra de ocupación
-    const occupancyBar = document.createElement('div');
-    occupancyBar.className = 'occupancy-bar';
-    
-    const occupancyFill = document.createElement('div');
-    occupancyFill.className = 'occupancy-fill';
-    const occupancy = ScheduleService.getOccupancyPercentage(session);
-    occupancyFill.style.width = `${occupancy}%`;
-    occupancyBar.appendChild(occupancyFill);
-    
-    spotsDiv.appendChild(occupancyBar);
     card.appendChild(spotsDiv);
 
     // Botón de ver detalles
@@ -169,6 +177,62 @@ export class ScheduleGridComponent {
     card.appendChild(button);
 
     return card;
+  }
+
+  /**
+   * Formatea un rango de fechas (startsAt - endsAt).
+   * @private
+   * @param {string} startsAt - Fecha en formato YYYYMMDD
+   * @param {string} endsAt - Fecha en formato YYYYMMDD
+   * @returns {string} Rango formateado (ej: "1 de febrero - 15 de febrero")
+   */
+  #formatDateRange(startsAt, endsAt) {
+    const startDate = `${startsAt.slice(0, 4)}-${startsAt.slice(4, 6)}-${startsAt.slice(6, 8)}`;
+    const endDate = `${endsAt.slice(0, 4)}-${endsAt.slice(4, 6)}-${endsAt.slice(6, 8)}`;
+    
+    const formattedStart = ScheduleService.formatDate(startDate);
+    const formattedEnd = ScheduleService.formatDate(endDate);
+    
+    return `${formattedStart} - ${formattedEnd}`;
+  }
+
+  /**
+   * Renderiza los idiomas como tags/chips.
+   * @private
+   * @param {Array} languages - Array de idiomas
+   * @returns {HTMLElement} Elemento con los idiomas
+   */
+  #renderLanguages(languages) {
+    const container = document.createElement('div');
+    container.className = 'schedule-session-languages';
+    
+    languages.forEach(lang => {
+      const tag = document.createElement('span');
+      tag.className = 'schedule-language-tag';
+      tag.textContent = this.#escapeHtml(lang);
+      container.appendChild(tag);
+    });
+    
+    return container;
+  }
+
+  /**
+   * Renderiza los días de la sesión.
+   * @private
+   * @param {string|Array} days - Días de la sesión
+   * @returns {HTMLElement} Elemento con los días
+   */
+  #renderDays(days) {
+    const container = document.createElement('div');
+    container.className = 'schedule-session-days';
+    
+    if (typeof days === 'string') {
+      container.textContent = `📅 ${this.#escapeHtml(days)}`;
+    } else if (Array.isArray(days)) {
+      container.textContent = `📅 ${days.map(d => this.#escapeHtml(d)).join(', ')}`;
+    }
+    
+    return container;
   }
 
   /**

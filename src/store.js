@@ -21,7 +21,7 @@ class Store {
           facets: null,              // Facetas del último resultado de búsqueda
           pagination: {
             offset: 0,                // Número de items saltados
-            limit: 10,               // Items por request (SOLR limit)
+            limit: 50,               // Items por request (SOLR limit)
             totalItems: 0,            // Total descubierto
             hasMore: true,            // ¿Hay más resultados?
             isLoadingMore: false      // ¿Cargando más resultados?

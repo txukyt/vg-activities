@@ -26,7 +26,9 @@ export class SessionDetailComponent {
 
     // Intentar cargar la actividad y la sesión
     try {
-      this.activity = await SearchService.getActivityById(this.activityId);
+      //this.activity = await SearchService.getActivityById(this.activityId);
+
+      this.activity = this.#getActivityFromCache(this.activityId);
       
       if (!this.activity) {
         container.innerHTML = `
@@ -118,7 +120,7 @@ export class SessionDetailComponent {
 
     const title = document.createElement('h1');
     title.className = 'session-detail-title';
-    title.textContent = this.#escapeHtml(activity.title);
+    title.textContent = this.#escapeHtml(activity.name);
 
     const centerBadge = document.createElement('div');
     centerBadge.className = 'center-badge';
@@ -152,7 +154,7 @@ export class SessionDetailComponent {
    */
   #createDetailsGrid() {
     const grid = document.createElement('div');
-    grid.className = 'session-details-grid';
+    grid.className = 'details-grid';
 
     const activity = this.activity;
     const session = this.session;
@@ -160,7 +162,7 @@ export class SessionDetailComponent {
     const details = [
       {
         label: 'Fecha de sesión',
-        value: ScheduleService.formatDate(session.date),
+        value: this.#formatDateWithDay(session.date),
         icon: '📅'
       },
       {
@@ -170,14 +172,14 @@ export class SessionDetailComponent {
       },
       {
         label: 'Rango de edad',
-        value: `${session.age.min}-${session.age.max} años`,
+        value: `${session.registration.ageLimits.min}-${session.registration.ageLimits.max} años`,
         icon: '👥'
       },
       {
         label: 'Plazas disponibles',
-        value: `${session.availableSpots} de ${session.totalSpots}`,
+        value: `${session.hasAvailableSpots ? 'Sí' : 'No'}`,
         icon: '📍',
-        className: session.availableSpots > 0 ? 'available' : 'full'
+        className: session.hasAvailableSpots ? 'available' : 'full'
       },
       {
         label: 'Formato',
@@ -193,18 +195,18 @@ export class SessionDetailComponent {
 
     details.forEach(detail => {
       const detailItem = document.createElement('div');
-      detailItem.className = `session-detail-item ${detail.className || ''}`;
+      detailItem.className = `detail-item ${detail.className || ''}`;
 
       const icon = document.createElement('span');
-      icon.className = 'session-detail-icon';
+      icon.className = 'detail-icon';
       icon.textContent = detail.icon;
 
       const labelSpan = document.createElement('span');
-      labelSpan.className = 'session-detail-label';
+      labelSpan.className = 'detail-label';
       labelSpan.textContent = detail.label;
 
       const valueSpan = document.createElement('span');
-      valueSpan.className = 'session-detail-value';
+      valueSpan.className = 'detail-value';
       valueSpan.textContent = this.#escapeHtml(detail.value);
 
       detailItem.appendChild(icon);
@@ -256,6 +258,21 @@ export class SessionDetailComponent {
   }
 
   /**
+   * Formatea una fecha mostrando el día de la semana.
+   * Ejemplo: "viernes, 1 de febrero de 2026"
+   * @private
+   */
+  #formatDateWithDay(dateString) {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  /**
    * Escapa caracteres HTML.
    * @private
    */
@@ -264,4 +281,51 @@ export class SessionDetailComponent {
     div.textContent = text;
     return div.innerHTML;
   }
+
+  /**
+    * Extrae una actividad del cache (state.results).
+    * Navega la estructura jerárquica: Centro → Actividades.
+    * 
+    * @private
+    * @param {string} activityId - ID de la actividad a buscar
+    * @returns {Object|null} Actividad con sesiones o null si no existe
+    */
+   #getActivityFromCache(activityId) {
+    const state = store.getState();
+    
+    // state.results es un array de centros agrupados
+    if (!Array.isArray(state.results) || state.results.length === 0) {
+      console.warn('[DetailComponent] Cache vacío o inválido', {
+        resultsType: typeof state.results,
+        resultsLength: Array.isArray(state.results) ? state.results.length : 'N/A'
+      });
+      return null;
+    }
+
+    // Buscar la actividad en la estructura jerárquica
+    for (const centerGroup of state.results) {
+      if (centerGroup.activities && Array.isArray(centerGroup.activities)) {
+        const activity = centerGroup.activities.find(a => a.id === activityId);
+        
+        if (activity) {
+          // Enriquecer con información del centro
+          return {
+            ...activity,
+            centerName: centerGroup.center?.name || 'Centro desconocido',
+            centerType: centerGroup.center?.type || 'Centro'
+          };
+        }
+      }
+    }
+
+    console.warn('[DetailComponent] Actividad no encontrada en cache', { 
+      activityId,
+      centersCount: state.results.length,
+      activitiesInCache: state.results.reduce((sum, cg) => 
+        sum + (cg.activities?.length || 0), 0
+      )
+    });
+    return null;
+  }
+
 }

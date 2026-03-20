@@ -206,7 +206,7 @@ export class SearchService {
 
        sessions.forEach(session => {
          // Saltar sesiones sin plazas disponibles (si aplica)
-         if (session.availableSpots !== undefined && session.availableSpots <= 0) {
+         if (session.hasAvailableSpots !== undefined && session.hasAvailableSpots === false) {
            return;
          }
 
