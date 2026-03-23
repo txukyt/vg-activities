@@ -23,10 +23,10 @@ export class ResultsRenderer {
   }
 
   /**
-   * Renderiza resultados AGRUPADOS por centro.
-   * Estructura: Array de { center: {...}, activities: [...] }
-   * @private
-   */
+    * Renderiza resultados AGRUPADOS por centro.
+    * Estructura: Array de { center: {...}, activities: [...] }
+    * @private
+    */
   static #renderGroupedResults(container, groupedData, onActivityClick) {
     if (!Array.isArray(groupedData) || groupedData.length === 0) {
       container.innerHTML = `
@@ -62,7 +62,7 @@ export class ResultsRenderer {
     activities.forEach(activity => {
       // Nota: En vista agrupada, cada activity es única
       // Sus sesiones están en activity.sessions (internas, no se muestran)
-      const activityItem = this.#createActivityItem(activity, onActivityClick);
+      const activityItem = this.#createActivityItem(activity, onActivityClick, center.id);
       activitiesList.appendChild(activityItem);
     });
 
@@ -72,13 +72,14 @@ export class ResultsRenderer {
   }
 
   /**
-   * Crea un item de actividad (elemento <li>).
-   * @private
-   */
-  static #createActivityItem(activity, onActivityClick) {
+    * Crea un item de actividad (elemento <li>).
+    * @private
+    */
+  static #createActivityItem(activity, onActivityClick, centerId) {
     const li = document.createElement('li');
     li.className = 'activity-item';
     li.setAttribute('data-activity-id', activity.id);
+    li.setAttribute('data-center-id', centerId);
 
     // Contenido de la actividad
     const contentDiv = document.createElement('div');
@@ -100,7 +101,7 @@ export class ResultsRenderer {
     detailsButton.textContent = 'Ver horarios';
     detailsButton.addEventListener('click', () => {
       if (onActivityClick) {
-        onActivityClick(activity.id);
+        onActivityClick(activity.id, centerId);
       }
     });
 

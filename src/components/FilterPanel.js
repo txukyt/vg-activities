@@ -158,15 +158,26 @@ export class FilterPanel {
 
   /**
    * Crea el filtro de Actividad.
+   * Si viene desde una ruta /activity/:id, solo muestra esa actividad fija.
    * @private
    */
       #createActivityFilter(facet, filter) {
         let activityOptions = [];
+        const state = store.getState();
+        const fixedActivityId = state.fixedActivityFilterFromRoute;
 
         if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
           activityOptions = FacetsService.transformActivityFacetsToOptions(facet);
-          console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
+          
+          // Si hay un filtro fijo desde ruta, SOLO mostrar esa actividad
+          if (fixedActivityId) {
+            // Las opciones tienen estructura {id, name} de FacetsService.transformActivityFacetsToOptions
+            activityOptions = activityOptions.filter(opt => String(opt.id).toLowerCase() === String(fixedActivityId).toLowerCase());
+            console.log('[FilterPanel] Filtro fijo de actividad detectado. Solo mostrando:', fixedActivityId, 'Opciones restantes:', activityOptions.length);
+          } else {
+            console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
+          }
         }
 
        const filterItem = new FilterItem({
@@ -175,7 +186,8 @@ export class FilterPanel {
          options: activityOptions,
          selectedValues: filter || [],
          onSelect: () => this.onFilterChange(),
-         hasSearchBox: true
+         hasSearchBox: true,
+         isFixed: fixedActivityId ? true : false  // Marcar si es fijo
        });
 
        this.filterItems['activity'] = filterItem;
@@ -187,16 +199,26 @@ export class FilterPanel {
 
     /**
      * Crea el filtro de Centro.
-     * Si hay un centro seleccionado, no muestra el filtro de centros.
+     * Si viene desde una ruta /center/:id, solo muestra ese centro fijo.
      * @private
      */
       #createCenterFilter(facet, filter) {
         let centerOptions = [];
+        const state = store.getState();
+        const fixedCenterId = state.fixedCenterFilterFromRoute;
 
         if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
           centerOptions = FacetsService.transformCenterFacetsToOptions(facet);
-          console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
+          
+          // Si hay un filtro fijo desde ruta, SOLO mostrar ese centro
+          if (fixedCenterId) {
+            // Las opciones tienen estructura {id, name} de FacetsService.transformCenterFacetsToOptions
+            centerOptions = centerOptions.filter(opt => String(opt.id) === String(fixedCenterId));
+            console.log('[FilterPanel] Filtro fijo de centro detectado. Solo mostrando:', fixedCenterId, 'Opciones restantes:', centerOptions.length);
+          } else {
+            console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
+          }
         }
 
         const filterItem = new FilterItem({
@@ -205,7 +227,8 @@ export class FilterPanel {
           options: centerOptions,
           selectedValues: filter || [],
           onSelect: () => this.onFilterChange(),
-          hasSearchBox: true
+          hasSearchBox: true,
+          isFixed: fixedCenterId ? true : false  // Marcar si es fijo
         });
 
         this.filterItems['center'] = filterItem;
@@ -307,6 +330,7 @@ export class FilterPanel {
 
   /**
    * Crea el botón limpiar filtros (Sección B solo).
+   * Si hay filtros fijos desde ruta, estos NO se limpian.
    * @private
    */
   #createClearFiltersButton() {
@@ -318,10 +342,25 @@ export class FilterPanel {
     button.className = 'btn btn-secondary';
     button.textContent = 'Limpiar Filtros';
     button.setAttribute('aria-label', 'Limpiar todos los filtros');
+    
+    const state = store.getState();
+    const hasFixedFilters = state.fixedActivityFilterFromRoute || state.fixedCenterFilterFromRoute;
 
     button.addEventListener('click', () => {
+      // Guardar los filtros fijos antes de resetear
+      const fixedActivityId = state.fixedActivityFilterFromRoute;
+      const fixedCenterId = state.fixedCenterFilterFromRoute;
+      
       // Resetear solo Sección B (filtros)
       store.resetFilters();
+      
+      // RE-aplicar los filtros fijos si existen
+      if (fixedActivityId) {
+        store.setFilters({ activity: [fixedActivityId] });
+      }
+      if (fixedCenterId) {
+        store.setFilters({ center: [fixedCenterId] });
+      }
 
       // Limpiar inputs
       Object.values(this.filterItems).forEach(filterItem => {
@@ -334,9 +373,11 @@ export class FilterPanel {
         centerSearch.value = '';
       }
 
-      // Desmarcar checkboxes
+      // Desmarcar checkboxes EXCEPTO los del filtro fijo
       document.querySelectorAll('.filter-item input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
+        if (!cb.disabled) { // Solo desmarcar si no está deshabilitado
+          cb.checked = false;
+        }
       });
 
       this.onFilterChange();

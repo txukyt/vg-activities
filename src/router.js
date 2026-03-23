@@ -1,7 +1,7 @@
 /**
  * router.js
  * Router SPA para manejar rutas.
- * Rutas: / (Búsqueda) y /activity/:id (Detalle)
+ * Rutas: / (Búsqueda), /center/:centerId/activity/:activityId (Detalle) y /center/:centerId/activity/:activityId/schedule/:sessionId (Schedule)
  * Soporta popstate para conservar resultados y scroll al volver.
  */
 
@@ -157,22 +157,39 @@ export class Router {
       pathname = '/' + pathname;
     }
 
-    // Detectar patrón /activity/:id/schedule/:sessionId
-    const scheduleMatch = pathname.match(/^\/activity\/(\d+)\/schedule\/(.+)$/);
+    // Detectar patrón /center/:centerId/activity/:activityId/schedule/:sessionId
+    const scheduleMatch = pathname.match(/^\/center\/([a-zA-Z0-9]+)\/activity\/([a-zA-Z0-9]+)\/schedule\/(.+)$/);
     if (scheduleMatch) {
       return {
-        path: '/activity/:id/schedule/:sessionId',
-        params: { id: parseInt(scheduleMatch[1]), sessionId: scheduleMatch[2] }
+        path: '/center/:centerId/activity/:activityId/schedule/:sessionId',
+        params: { centerId: scheduleMatch[1], activityId: scheduleMatch[2], sessionId: scheduleMatch[3] }
       };
     }
 
-    // Detectar patrón /activity/:id
-    const activityMatch = pathname.match(/^\/activity\/([a-zA-Z0-9]+)$/);
+    // Detectar patrón /center/:centerId/activity/:activityId
+    const activityMatch = pathname.match(/^\/center\/([a-zA-Z0-9]+)\/activity\/([a-zA-Z0-9]+)$/);
     if (activityMatch) {
       return {
-        path: "/activity/:id",
-        // OJO: Si el ID puede ser "AGIE", no puedes usar parseInt()
-        params: { id: activityMatch[1] } 
+        path: "/center/:centerId/activity/:activityId",
+        params: { centerId: activityMatch[1], activityId: activityMatch[2] }
+      };
+    }
+
+    // Detectar patrón /center/:centerId (sin activity)
+    const centerMatch = pathname.match(/^\/center\/([a-zA-Z0-9]+)$/);
+    if (centerMatch) {
+      return {
+        path: '/center/:centerId',
+        params: { centerId: centerMatch[1] }
+      };
+    }
+
+    // Detectar patrón /activity/:activityId
+    const singleActivityMatch = pathname.match(/^\/activity\/([a-zA-Z0-9]+)$/);
+    if (singleActivityMatch) {
+      return {
+        path: '/activity/:activityId',
+        params: { activityId: singleActivityMatch[1] }
       };
     }
 

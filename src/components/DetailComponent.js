@@ -18,7 +18,8 @@ import { ScheduleGridComponent } from './ScheduleGridComponent.js';
 
 export class DetailComponent {
    constructor(router = null, params = {}) {
-     this.activityId = params.id;
+     this.centerId = params.centerId;
+     this.activityId = params.activityId;
      this.router = router;
      this.activity = null;
      this.isUpdatingFromBackend = false;
@@ -273,8 +274,9 @@ export class DetailComponent {
    */
   #handleSessionClick(session) {
     if (this.router) {
-      this.router.navigate('/activity/:id/schedule/:sessionId', {
-        id: this.activityId,
+      this.router.navigate('/center/:centerId/activity/:activityId/schedule/:sessionId', {
+        centerId: this.centerId,
+        activityId: this.activityId,
         sessionId: session.id
       });
     }

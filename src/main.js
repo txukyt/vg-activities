@@ -6,6 +6,8 @@
 
 import { Router } from './router.js';
 import { SearchComponent } from './components/SearchComponent.js';
+import { CenterSearchComponent } from './components/CenterSearchComponent.js';
+import { ActivitySearchComponent } from './components/ActivitySearchComponent.js';
 import { DetailComponent } from './components/DetailComponent.js';
 import { SessionDetailComponent } from './components/SessionDetailComponent.js';
 import { store } from './store.js';
@@ -28,8 +30,10 @@ async function initApp() {
 
   // Registrar páginas
   router.registerPage('/', SearchComponent);
-  router.registerPage('/activity/:id', DetailComponent);
-  router.registerPage('/activity/:id/schedule/:sessionId', SessionDetailComponent);
+  router.registerPage('/center/:centerId', CenterSearchComponent);
+  router.registerPage('/activity/:activityId', ActivitySearchComponent);
+  router.registerPage('/center/:centerId/activity/:activityId', DetailComponent);
+  router.registerPage('/center/:centerId/activity/:activityId/schedule/:sessionId', SessionDetailComponent);
 
    // Inicializar datos (centros y actividades)
    try {

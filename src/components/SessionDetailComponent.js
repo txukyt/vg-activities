@@ -9,7 +9,8 @@ import { ScheduleService } from '../services/ScheduleService.js';
 
 export class SessionDetailComponent {
   constructor(router = null, params = {}) {
-    this.activityId = params.id;
+    this.centerId = params.centerId;
+    this.activityId = params.activityId;
     this.sessionId = params.sessionId;
     this.router = router;
     this.activity = null;
@@ -93,7 +94,7 @@ export class SessionDetailComponent {
     backButton.textContent = '← Volver al detalle';
     backButton.addEventListener('click', () => {
       if (this.router) {
-        this.router.navigate('/activity/:id', { id: this.activityId });
+        this.router.navigate('/center/:centerId/activity/:activityId', { centerId: this.centerId, activityId: this.activityId });
       } else {
         window.history.back();
       }

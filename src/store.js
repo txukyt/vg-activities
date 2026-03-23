@@ -19,6 +19,8 @@ class Store {
           activities: [],
           filtersDrawerOpen: false,  // Control de visibilidad del drawer de filtros en móvil
           facets: null,              // Facetas del último resultado de búsqueda
+          fixedActivityFilterFromRoute: null,  // ID de actividad fija desde URL /activity/:id
+          fixedCenterFilterFromRoute: null,    // ID de centro fijo desde URL /center/:id
           pagination: {
             offset: 0,                // Número de items saltados
             limit: 50,               // Items por request (SOLR limit)

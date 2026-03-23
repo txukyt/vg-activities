@@ -163,27 +163,43 @@ export class SelectedFiltersBar {
 
   /**
    * Crea un chip individual para un filtro seleccionado.
+   * Oculta el botón × si el filtro es fijo desde ruta.
    * @private
    */
   #createChip(filter) {
+    const state = store.getState();
+    const isFixedCenter = state.fixedCenterFilterFromRoute && filter.type === 'center' && filter.value === state.fixedCenterFilterFromRoute;
+    const isFixedActivity = state.fixedActivityFilterFromRoute && filter.type === 'activity' && filter.value === state.fixedActivityFilterFromRoute;
+    const isFixed = isFixedCenter || isFixedActivity;
+    
     const chip = document.createElement('div');
     chip.className = 'selected-filter-chip';
     chip.setAttribute('data-filter-type', filter.type);
     chip.setAttribute('data-filter-value', filter.value);
+    
+    // Añadir clase si es fijo
+    if (isFixed) {
+      chip.classList.add('chip-fixed');
+    }
 
     const label = document.createElement('span');
     label.className = 'chip-text';
     label.textContent = filter.label;
-    label.title = `${filter.typeLabel}: ${filter.label}`;
-
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'chip-remove-btn';
-    removeBtn.innerHTML = '×';
-    removeBtn.setAttribute('aria-label', `Eliminar filtro ${filter.label}`);
-    removeBtn.addEventListener('click', () => this.#removeFilter(filter));
+    label.title = isFixed
+      ? `${filter.typeLabel}: ${filter.label} (obligatorio)`
+      : `${filter.typeLabel}: ${filter.label}`;
 
     chip.appendChild(label);
-    chip.appendChild(removeBtn);
+    
+    // Mostrar botón × SOLO si NO es un filtro fijo
+    if (!isFixed) {
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'chip-remove-btn';
+      removeBtn.innerHTML = '×';
+      removeBtn.setAttribute('aria-label', `Eliminar filtro ${filter.label}`);
+      removeBtn.addEventListener('click', () => this.#removeFilter(filter));
+      chip.appendChild(removeBtn);
+    }
 
     return chip;
   }
@@ -203,13 +219,17 @@ export class SelectedFiltersBar {
   }
 
   /**
-   * Elimina todos los filtros.
+   * Elimina todos los filtros EXCEPTO los fijos desde ruta.
    * @private
    */
   #clearAllFilters() {
+    const state = store.getState();
+    const fixedActivityId = state.fixedActivityFilterFromRoute;
+    const fixedCenterId = state.fixedCenterFilterFromRoute;
+    
     store.setFilters({
-      center: [],
-      activity: [],
+      center: fixedCenterId ? [fixedCenterId] : [],
+      activity: fixedActivityId ? [fixedActivityId] : [],
       dayOfWeek: [],
       timeSlot: [],
       language: [],

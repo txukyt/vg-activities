@@ -91,7 +91,7 @@ export class SearchComponent {
       } else if (state.results.length > 0) {
         const resultsElement = ResultsRenderer.render(
           state.results,
-          (activityId) => this.#handleActivityClick(activityId)
+          (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
         );
         resultsWrapper.appendChild(resultsElement);
       } else {
@@ -362,7 +362,7 @@ export class SearchComponent {
       console.log('[SearchComponent] Renderizando', state.results.length, 'resultados. hasMore:', state.pagination.hasMore);
       const resultsElement = ResultsRenderer.render(
         state.results,
-        (activityId) => this.#handleActivityClick(activityId)
+        (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
       );
       resultsWrapper.appendChild(resultsElement);
 
@@ -401,12 +401,12 @@ export class SearchComponent {
 
 
   /**
-   * Maneja el click en una actividad.
-   * @private
-   */
-  async #handleActivityClick(activityId) {
+    * Maneja el click en una actividad.
+    * @private
+    */
+  async #handleActivityClick(activityId, centerId) {
     if (this.router) {
-      await this.router.navigate('/activity/:id', { id: activityId });
+      await this.router.navigate('/center/:centerId/activity/:activityId', { centerId, activityId });
     }
   }
 
