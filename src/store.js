@@ -59,12 +59,16 @@ class Store {
    * @param {Object} newFilters - Objeto con los filtros a actualizar
    */
   setFilters(newFilters) {
-    this.setState({
+    /*this.setState({
       filters: {
         ...this.state.filters,
         ...newFilters
       }
-    });
+    }); */
+    this.state.filters = {
+      ...this.state.filters,
+      ...newFilters
+    }
   }
 
   /**
@@ -83,7 +87,8 @@ class Store {
    * @param {boolean} loading - true si está cargando
    */
   setLoading(loading) {
-    this.setState({ loading });
+    //this.setState({ loading });
+    this.state.loading = loading; // No notifica cambios
   }
 
   /**
@@ -232,12 +237,16 @@ class Store {
    * @param {boolean} isLoading
    */
   setIsLoadingMore(isLoading) {
-    this.setState({
+    /*this.setState({
       pagination: {
         ...this.state.pagination,
         isLoadingMore: isLoading
       }
-    });
+    }); */
+    this.state.pagination = {
+      ...this.state.pagination,
+      isLoadingMore: isLoading
+    }
   }
 
   /**

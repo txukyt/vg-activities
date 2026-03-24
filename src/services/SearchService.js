@@ -68,11 +68,24 @@ export class SearchService {
          centerNames: groupedData.map(g => g.center.name)
        });
 
+       // Calcular si hay más resultados
+       const hasMore = offset + limit < totalCount;
+       
+       console.log('[SearchService] Resultado de búsqueda finalizado', {
+         totalCenters: groupedData.length,
+         totalItems: totalCount,
+         hasMore,
+         offset,
+         limit,
+         nextOffsetWould: offset + limit,
+         comparacion: `${offset + limit} < ${totalCount} = ${hasMore}`
+       });
+
        // Retornar siempre estructura agrupada (aunque esté vacía)
        return {
          data: groupedData,
          totalItems: totalCount,
-         hasMore: offset + limit < totalCount,
+         hasMore: hasMore,
          offset,
          limit,
          facets: facets

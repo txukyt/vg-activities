@@ -38,28 +38,29 @@ export class FilterItem {
     this.isFixed = config.isFixed || false; // Si el filtro viene de una ruta fija
   }
 
-  /**
-   * Renderiza el FilterItem completo.
-   * @returns {HTMLElement} Elemento del filtro
-   */
-  render() {
-    const container = document.createElement('details');
-    container.className = 'filter-item details-bar';
-    container.setAttribute('data-filter-id', this.id);
-    // Por defecto los filtros están expandidos
-    container.open = true;
+   /**
+    * Renderiza el FilterItem completo.
+    * @returns {HTMLElement} Elemento del filtro
+    */
+   render() {
+     const container = document.createElement('details');
+     container.className = 'filter-item details-bar';
+     container.setAttribute('data-filter-id', this.id);
+     // Por defecto los filtros están expandidos
+     container.open = true;
 
-    // Header solo con el label (dentro de summary)
-    container.appendChild(this.#createSummaryHeader());
+     // Header solo con el label (dentro de summary)
+     container.appendChild(this.#createSummaryHeader());
 
-    // Contenedor de contenido desplegable
-    const detailsContent = document.createElement('div');
-    detailsContent.className = 'details-content';
+     // Contenedor de contenido desplegable
+     const detailsContent = document.createElement('div');
+     detailsContent.className = 'details-content';
 
-    // Caja de búsqueda (fuera del summary, dentro del contenido)
-    if (this.hasSearchBox) {
-      detailsContent.appendChild(this.#createSearchBox());
-    }
+     // Caja de búsqueda (fuera del summary, dentro del contenido)
+     // NO mostrar si el filtro es fijo desde ruta
+     if (this.hasSearchBox && !this.isFixed) {
+       detailsContent.appendChild(this.#createSearchBox());
+     }
 
     // Contenedor de opciones
     const optionsContainer = document.createElement('div');

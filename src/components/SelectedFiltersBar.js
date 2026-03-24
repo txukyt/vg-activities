@@ -8,8 +8,9 @@ import { store } from '../store.js';
 import { FilterService } from '../services/FilterService.js';
 
 export class SelectedFiltersBar {
-  constructor(onFilterChange) {
+  constructor(onFilterChange, filterPanel = null) {
     this.onFilterChange = onFilterChange;
+    this.filterPanel = filterPanel;
     this.activities = [];
     this.centers = [];
     this.element = null;
@@ -34,54 +35,57 @@ export class SelectedFiltersBar {
     return container;
   }
 
-  /**
-   * Actualiza el contenido de la barra según el estado actual.
-   * @private
-   */
-  #renderContent() {
-    if (!this.element) return;
+   /**
+    * Actualiza el contenido de la barra según el estado actual.
+    * @private
+    */
+   #renderContent() {
+     if (!this.element) return;
 
-    const state = store.getState();
-    const filters = state.filters;
+     const state = store.getState();
+     const filters = state.filters;
 
-    // Limpiar contenido actual
-    this.element.innerHTML = '';
+     // Limpiar contenido actual
+     this.element.innerHTML = '';
 
-    // Recopilar todos los filtros seleccionados
-    const selectedFilters = this.#collectSelectedFilters(filters);
+     // Recopilar todos los filtros seleccionados
+     const selectedFilters = this.#collectSelectedFilters(filters);
 
-    // Si no hay filtros seleccionados, ocultar la barra
-    if (selectedFilters.length === 0) {
-      this.element.style.display = 'none';
-      return;
-    }
+     // Si no hay filtros seleccionados, ocultar la barra
+     if (selectedFilters.length === 0) {
+       this.element.style.display = 'none';
+       return;
+     }
 
-    this.element.style.display = 'flex';
+     this.element.style.display = 'flex';
 
-    // Título
-    const title = document.createElement('span');
-    title.className = 'selected-filters-title';
-    title.textContent = `Filtros activos (${selectedFilters.length}):`;
-    this.element.appendChild(title);
+     // Título
+     const title = document.createElement('span');
+     title.className = 'selected-filters-title';
+     title.textContent = `Filtros activos (${selectedFilters.length}):`;
+     this.element.appendChild(title);
 
-    // Contenedor de chips
-    const chipsContainer = document.createElement('div');
-    chipsContainer.className = 'selected-filters-chips';
+     // Contenedor de chips
+     const chipsContainer = document.createElement('div');
+     chipsContainer.className = 'selected-filters-chips';
 
-    selectedFilters.forEach(filter => {
-      const chip = this.#createChip(filter);
-      chipsContainer.appendChild(chip);
-    });
+     selectedFilters.forEach(filter => {
+       const chip = this.#createChip(filter);
+       chipsContainer.appendChild(chip);
+     });
 
-    this.element.appendChild(chipsContainer);
+     this.element.appendChild(chipsContainer);
 
-    // Botón limpiar todos
-    const clearAllBtn = document.createElement('button');
-    clearAllBtn.className = 'clear-all-filters-btn';
-    clearAllBtn.textContent = 'Limpiar todo';
-    clearAllBtn.addEventListener('click', () => this.#clearAllFilters());
-    this.element.appendChild(clearAllBtn);
-  }
+     // Botón limpiar todos: SOLO si hay filtros no-fijos
+     const hasNonFixedFilters = this.#hasNonFixedFilters();
+     if (hasNonFixedFilters) {
+       const clearAllBtn = document.createElement('button');
+       clearAllBtn.className = 'clear-all-filters-btn';
+       clearAllBtn.textContent = 'Limpiar todo';
+       clearAllBtn.addEventListener('click', () => this.#clearAllFilters());
+       this.element.appendChild(clearAllBtn);
+     }
+   }
 
   /**
    * Recopila todos los filtros seleccionados en un array plano.
@@ -204,39 +208,102 @@ export class SelectedFiltersBar {
     return chip;
   }
 
-  /**
-   * Elimina un filtro específico.
-   * @private
-   */
-  #removeFilter(filter) {
-    const state = store.getState();
-    const currentFilters = state.filters[filter.type] || [];
-    
-    const updated = currentFilters.filter(value => value !== filter.value);
-    store.setFilters({ [filter.type]: updated });
-    
-    this.onFilterChange();
-  }
+   /**
+    * Verifica si hay filtros no-fijos seleccionados.
+    * @private
+    */
+   #hasNonFixedFilters() {
+     const state = store.getState();
+     const fixedActivityId = state.fixedActivityFilterFromRoute;
+     const fixedCenterId = state.fixedCenterFilterFromRoute;
+     const filters = state.filters;
 
-  /**
-   * Elimina todos los filtros EXCEPTO los fijos desde ruta.
-   * @private
-   */
-  #clearAllFilters() {
-    const state = store.getState();
-    const fixedActivityId = state.fixedActivityFilterFromRoute;
-    const fixedCenterId = state.fixedCenterFilterFromRoute;
-    
-    store.setFilters({
-      center: fixedCenterId ? [fixedCenterId] : [],
-      activity: fixedActivityId ? [fixedActivityId] : [],
-      dayOfWeek: [],
-      timeSlot: [],
-      language: [],
-      schedule: []
-    });
-    this.onFilterChange();
-  }
+     // Verificar dayOfWeek
+     if (filters.dayOfWeek && filters.dayOfWeek.length > 0) {
+       return true;
+     }
+
+     // Verificar timeSlot
+     if (filters.timeSlot && filters.timeSlot.length > 0) {
+       return true;
+     }
+
+     // Verificar language
+     if (filters.language && filters.language.length > 0) {
+       return true;
+     }
+
+     // Verificar center (comparar con fijo)
+     if (filters.center && filters.center.length > 0) {
+       if (fixedCenterId) {
+         // Si hay filtro fijo de centro, solo es no-fijo si hay más centros seleccionados
+         if (filters.center.length > 1 || filters.center[0] !== fixedCenterId) {
+           return true;
+         }
+       } else {
+         // Si no hay filtro fijo, cualquier centro seleccionado es no-fijo
+         return true;
+       }
+     }
+
+     // Verificar activity (comparar con fijo)
+     if (filters.activity && filters.activity.length > 0) {
+       if (fixedActivityId) {
+         // Si hay filtro fijo de actividad, solo es no-fijo si hay más actividades seleccionadas
+         if (filters.activity.length > 1 || filters.activity[0] !== fixedActivityId) {
+           return true;
+         }
+       } else {
+         // Si no hay filtro fijo, cualquier actividad seleccionada es no-fija
+         return true;
+       }
+     }
+
+     return false;
+   }
+
+   /**
+    * Elimina un filtro específico.
+    * @private
+    */
+   #removeFilter(filter) {
+     const state = store.getState();
+     const currentFilters = state.filters[filter.type] || [];
+     
+     const updated = currentFilters.filter(value => value !== filter.value);
+     store.setFilters({ [filter.type]: updated });
+     
+     this.onFilterChange();
+   }
+
+   /**
+    * Elimina todos los filtros EXCEPTO los fijos desde ruta.
+    * También desactiva los checkboxes en el FilterPanel si está disponible.
+    * @private
+    */
+   #clearAllFilters() {
+     const state = store.getState();
+     const fixedActivityId = state.fixedActivityFilterFromRoute;
+     const fixedCenterId = state.fixedCenterFilterFromRoute;
+     
+     store.setFilters({
+       center: fixedCenterId ? [fixedCenterId] : [],
+       activity: fixedActivityId ? [fixedActivityId] : [],
+       dayOfWeek: [],
+       timeSlot: [],
+       language: [],
+       schedule: []
+     });
+     
+     // Limpiar checkboxes en el FilterPanel si existe la referencia
+     if (this.filterPanel && this.filterPanel.filterItems) {
+       Object.values(this.filterPanel.filterItems).forEach(filterItem => {
+         filterItem.reset();
+       });
+     }
+     
+     this.onFilterChange();
+   }
 
   /**
    * Actualiza la barra cuando cambian los filtros.

@@ -33,6 +33,17 @@ export class SearchComponent {
       const container = document.createElement('div');
       container.className = 'search-component';
     
+      // Crear el wrapper de resultados PRIMERO (antes de la búsqueda)
+      // Esto garantiza que exista cuando se lance la búsqueda inicial
+      const resultsWrapper = document.createElement('div');
+      resultsWrapper.className = 'results-wrapper';
+      resultsWrapper.id = 'results-wrapper';
+      resultsWrapper.innerHTML = `
+        <div class="no-results">
+          <p>Realiza una búsqueda para ver los resultados</p>
+        </div>
+      `;
+    
       // CRÍTICO: Suscribirse PRIMERO, antes de cualquier búsqueda
       // De lo contrario, la búsqueda inicial no dispara #updateResults()
       this.unsubscribe = store.subscribe(() => {
@@ -63,19 +74,20 @@ export class SearchComponent {
       const mainElement = document.createElement('main');
       mainElement.className = 'search-main';
     
-      // Formulario de búsqueda (dentro de main)
-      this.searchForm = new SearchForm(() => this.#performSearch());
-      mainElement.appendChild(await this.searchForm.render());
-    
-      // Barra de filtros seleccionados (entre formulario y resultados)
-      this.selectedFiltersBar = new SelectedFiltersBar(() => this.#performSearch());
-      mainElement.appendChild(await this.selectedFiltersBar.render());
+       // Formulario de búsqueda (dentro de main)
+       this.searchForm = new SearchForm(() => this.#performSearch());
+       mainElement.appendChild(await this.searchForm.render());
+     
+       // Crear FilterPanel primero (antes de SelectedFiltersBar)
+       this.filterPanel = new FilterPanel(() => this.#performSearch());
+     
+       // Barra de filtros seleccionados (entre formulario y resultados)
+       // Pasar referencia a FilterPanel para que pueda limpiar checkboxes
+       this.selectedFiltersBar = new SelectedFiltersBar(() => this.#performSearch(), this.filterPanel);
+       mainElement.appendChild(await this.selectedFiltersBar.render());
     
       // Resultados (dentro de main)
-      const resultsWrapper = document.createElement('div');
-      resultsWrapper.className = 'results-wrapper';
-      resultsWrapper.id = 'results-wrapper';
-    
+      // El wrapper ya fue creado arriba, solo actualizar su contenido si es necesario en render inicial
       if (state.loading) {
         resultsWrapper.innerHTML = `
           <div class="loading">
@@ -89,29 +101,23 @@ export class SearchComponent {
           </div>
         `;
       } else if (state.results.length > 0) {
+        resultsWrapper.innerHTML = '';
         const resultsElement = ResultsRenderer.render(
           state.results,
           (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
         );
         resultsWrapper.appendChild(resultsElement);
-      } else {
-        resultsWrapper.innerHTML = `
-          <div class="no-results">
-            <p>Realiza una búsqueda para ver los resultados</p>
-          </div>
-        `;
       }
     
       mainElement.appendChild(resultsWrapper);
       layoutContainer.appendChild(mainElement);
     
-      // Columna 2: Filtros en aside
-      const filtersSidebar = document.createElement('aside');
-      filtersSidebar.className = 'filters-sidebar';
-    
-      this.filterPanel = new FilterPanel(() => this.#performSearch());
-      const filterPanelElement = await this.filterPanel.render();
-      filtersSidebar.appendChild(filterPanelElement);
+       // Columna 2: Filtros en aside
+       const filtersSidebar = document.createElement('aside');
+       filtersSidebar.className = 'filters-sidebar';
+     
+       const filterPanelElement = await this.filterPanel.render();
+       filtersSidebar.appendChild(filterPanelElement);
     
       layoutContainer.appendChild(filtersSidebar);
       container.appendChild(layoutContainer);
@@ -209,16 +215,16 @@ export class SearchComponent {
         console.log('[SearchComponent] Filtros cambiaron, reseteando offset a 0');
         // Filtros cambiaron: nueva búsqueda desde offset 0
         isLoadingMore = false;
-        store.setPaginationOffset(0);
+        //store.setPaginationOffset(0);
       }
 
-      if (!isLoadingMore) {
+      /*if (!isLoadingMore) {
         // Nueva búsqueda: marcar que cargando
         store.setLoading(true);
       } else {
         // Infinite scroll: marcar que cargando más
         store.setIsLoadingMore(true);
-      }
+      } */
 
       const result = await SearchService.search(
         filters,
@@ -339,8 +345,12 @@ export class SearchComponent {
     // Actualizar visibilidad del drawer
     this.#updateFiltersDrawerVisibility();
 
-    if (!resultsWrapper) return;
+    if (!resultsWrapper) {
+      console.warn('[SearchComponent] ⚠️ results-wrapper no encontrado en el DOM');
+      return;
+    }
 
+    // Limpiar contenido previo
     resultsWrapper.innerHTML = '';
 
     if (state.loading && state.results.length === 0) {
@@ -350,52 +360,62 @@ export class SearchComponent {
           <p>Cargando resultados...</p>
         </div>
       `;
-    } else if (state.error && state.results.length === 0) {
+      return;
+    }
+
+    if (state.error && state.results.length === 0) {
       // Error en búsqueda sin resultados previos
       resultsWrapper.innerHTML = `
         <div class="error">
           <p>${this.#escapeHtml(state.error)}</p>
         </div>
       `;
-    } else if (state.results.length > 0) {
-      // Renderizar resultados
-      console.log('[SearchComponent] Renderizando', state.results.length, 'resultados. hasMore:', state.pagination.hasMore);
-      const resultsElement = ResultsRenderer.render(
-        state.results,
-        (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
-      );
-      resultsWrapper.appendChild(resultsElement);
+      return;
+    }
 
-      // Indicador de carga
-      if (state.pagination.isLoadingMore) {
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'loading-more';
-        loadingIndicator.innerHTML = '<p>Cargando más resultados...</p>';
-        resultsWrapper.appendChild(loadingIndicator);
-      }
-
-      // Botón "Ver más" si hay más resultados disponibles
-      if (state.pagination.hasMore && !state.pagination.isLoadingMore) {
-        console.log('[SearchComponent] Mostrando botón "Ver más". Offset:', state.pagination.offset, 'Total:', state.pagination.totalItems);
-        const loadMoreButton = document.createElement('button');
-        loadMoreButton.className = 'btn-load-more';
-        loadMoreButton.textContent = 'Ver más';
-        loadMoreButton.addEventListener('click', async () => {
-          console.log('[SearchComponent] Usuario hizo click en "Ver más"');
-          await this.#performSearch(true); // true = cargar más resultados
-        });
-        resultsWrapper.appendChild(loadMoreButton);
-        this.loadMoreButton = loadMoreButton;
-      } else {
-        console.log('[SearchComponent] NO se muestra botón "Ver más". hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
-      }
-    } else {
-      // Sin resultados
+    if (state.results.length === 0) {
+      // Sin resultados (búsqueda completada sin errores)
       resultsWrapper.innerHTML = `
         <div class="no-results">
           <p>No se encontraron resultados para tu búsqueda</p>
         </div>
       `;
+      return;
+    }
+
+    // CASO: Tenemos resultados
+    console.log('[SearchComponent] Renderizando', state.results.length, 'centros. hasMore:', state.pagination.hasMore);
+    
+    // Renderizar resultados
+    const resultsElement = ResultsRenderer.render(
+      state.results,
+      (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
+    );
+    resultsWrapper.appendChild(resultsElement);
+
+    // Indicador de carga para infinite scroll
+    if (state.pagination.isLoadingMore) {
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.className = 'loading-more';
+      loadingIndicator.innerHTML = '<p>Cargando más resultados...</p>';
+      resultsWrapper.appendChild(loadingIndicator);
+    }
+
+    // Botón "Ver más" si hay más resultados disponibles
+    // CRÍTICO: Verificar AMBAS condiciones: hasMore = true y NO está cargando
+    if (state.pagination.hasMore === true && state.pagination.isLoadingMore === false) {
+      console.log('[SearchComponent] ✓ Agregando botón "Ver más". offset:', state.pagination.offset, 'total:', state.pagination.totalItems);
+      const loadMoreButton = document.createElement('button');
+      loadMoreButton.className = 'btn-load-more';
+      loadMoreButton.textContent = 'Ver más';
+      loadMoreButton.addEventListener('click', async () => {
+        console.log('[SearchComponent] Usuario hizo click en "Ver más"');
+        await this.#performSearch(true); // true = cargar más resultados
+      });
+      resultsWrapper.appendChild(loadMoreButton);
+      this.loadMoreButton = loadMoreButton;
+    } else if (state.results.length > 0) {
+      console.log('[SearchComponent] ⚠️ NO se muestra botón "Ver más". hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
     }
   }
 
