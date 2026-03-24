@@ -51,6 +51,7 @@ export class SolrGateway {
         searchText: filters.searchText || '',
         activity: Array.isArray(filters.activity) ? filters.activity : [],
         center: Array.isArray(filters.center) ? filters.center : [],
+        program: Array.isArray(filters.program) ? filters.program : [],
         dayOfWeek: Array.isArray(filters.dayOfWeek) ? filters.dayOfWeek : [],
         timeSlot: Array.isArray(filters.timeSlot) ? filters.timeSlot : [],
         language: Array.isArray(filters.language) ? filters.language : [],

@@ -13,6 +13,7 @@ export class SelectedFiltersBar {
     this.filterPanel = filterPanel;
     this.activities = [];
     this.centers = [];
+    this.programs = [];
     this.element = null;
   }
 
@@ -24,6 +25,7 @@ export class SelectedFiltersBar {
     // Obtener actividades y centros del store para mapear IDs a nombres
     this.activities = store.getActivities();
     this.centers = store.getCenters();
+    this.programs = store.getPrograms();
 
     const container = document.createElement('div');
     container.className = 'selected-filters-bar';
@@ -110,6 +112,22 @@ export class SelectedFiltersBar {
       });
     }
 
+    // Programa
+    if (filters.program && filters.program.length > 0) {
+      // Crear mapa de IDs a nombres usando FilterService
+      const programMap = new Map(
+        FilterService.getProgramNames(this.programs).map(p => [p.id, p.name])
+      );
+      filters.program.forEach(programId => {
+        selected.push({
+          type: 'program',
+          typeLabel: 'Programa',
+          value: programId,
+          label: programMap.get(programId) || programId
+        });
+      });
+    }
+
     // Actividad
     if (filters.activity && filters.activity.length > 0) {
       // Crear mapa de IDs a nombres usando FilterService
@@ -174,7 +192,8 @@ export class SelectedFiltersBar {
     const state = store.getState();
     const isFixedCenter = state.fixedCenterFilterFromRoute && filter.type === 'center' && filter.value === state.fixedCenterFilterFromRoute;
     const isFixedActivity = state.fixedActivityFilterFromRoute && filter.type === 'activity' && filter.value === state.fixedActivityFilterFromRoute;
-    const isFixed = isFixedCenter || isFixedActivity;
+    const isFixedProgram = state.fixedProgramFilterFromRoute && filter.type === 'program' && filter.value === state.fixedProgramFilterFromRoute;
+    const isFixed = isFixedCenter || isFixedActivity || isFixedProgram;
     
     const chip = document.createElement('div');
     chip.className = 'selected-filter-chip';
@@ -216,6 +235,7 @@ export class SelectedFiltersBar {
      const state = store.getState();
      const fixedActivityId = state.fixedActivityFilterFromRoute;
      const fixedCenterId = state.fixedCenterFilterFromRoute;
+     const fixedProgramId = state.fixedProgramFilterFromRoute;
      const filters = state.filters;
 
      // Verificar dayOfWeek
@@ -259,6 +279,19 @@ export class SelectedFiltersBar {
        }
      }
 
+     // Verificar program (comparar con fijo)
+     if (filters.program && filters.program.length > 0) {
+       if (fixedProgramId) {
+         // Si hay filtro fijo de programa, solo es no-fijo si hay más programas seleccionados
+         if (filters.program.length > 1 || filters.program[0] !== fixedProgramId) {
+           return true;
+         }
+       } else {
+         // Si no hay filtro fijo, cualquier programa seleccionado es no-fijo
+         return true;
+       }
+     }
+
      return false;
    }
 
@@ -285,10 +318,12 @@ export class SelectedFiltersBar {
      const state = store.getState();
      const fixedActivityId = state.fixedActivityFilterFromRoute;
      const fixedCenterId = state.fixedCenterFilterFromRoute;
+     const fixedProgramId = state.fixedProgramFilterFromRoute;
      
      store.setFilters({
        center: fixedCenterId ? [fixedCenterId] : [],
        activity: fixedActivityId ? [fixedActivityId] : [],
+       program: fixedProgramId ? [fixedProgramId] : [],
        dayOfWeek: [],
        timeSlot: [],
        language: [],

@@ -401,6 +401,56 @@ export class FacetsService {
    }
 
    /**
+    * Transforma facetas de programas a formato {id, name} para UI.
+    * Busca los nombres de programas en el store por ID.
+    * Si no encuentra nombre, usa el ID como fallback.
+    * @param {Array} programFacets - Facetas de programas del store
+    * @returns {Array} Array de objetos {id, name}
+    */
+   static transformProgramFacetsToOptions(programFacets) {
+     if (!Array.isArray(programFacets)) return [];
+     
+     const programs = store.getPrograms();
+     const programsMap = new Map();
+     
+     // Crear un mapa de programas por id para búsqueda rápida
+     if (Array.isArray(programs)) {
+       programs.forEach(program => {
+         if (program && program.id) {
+           // Convertir a string para comparar con valor de faceta (que es string)
+           programsMap.set(String(program.id), program.title || program.name || String(program.id));
+         }
+       });
+     }
+     
+     const transformed = programFacets  
+       .map(facet => {
+         const programId = facet.value?.toUpperCase() || facet.id;
+         let name = facet.name || '';
+         
+         // Si no hay name en la faceta, buscar en el store
+         if (!name && programsMap.has(String(programId))) {
+           name = programsMap.get(String(programId));
+         }
+         
+         return {
+           id: programId,
+           name: name || String(programId)
+         };
+       })
+       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+     
+     console.log('[FacetsService] transformProgramFacetsToOptions:', {
+       inputCount: programFacets.length,
+       outputCount: transformed.length,
+       mappedPrograms: programsMap.size,
+       sample: transformed.slice(0, 3)
+     });
+     
+     return transformed;
+   }
+
+   /**
     * Transforma facetas de centros a formato {id, name} para UI.
     * Si no viene name en la faceta, busca el nombre del centro en el store.
     * Maneja conversión de tipos de datos (string ↔ número) para asegurar mapeo correcto.

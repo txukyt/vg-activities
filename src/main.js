@@ -8,6 +8,7 @@ import { Router } from './router.js';
 import { SearchComponent } from './components/SearchComponent.js';
 import { CenterSearchComponent } from './components/CenterSearchComponent.js';
 import { ActivitySearchComponent } from './components/ActivitySearchComponent.js';
+import { ProgramSearchComponent } from './components/ProgramSearchComponent.js';
 import { DetailComponent } from './components/DetailComponent.js';
 import { SessionDetailComponent } from './components/SessionDetailComponent.js';
 import { store } from './store.js';
@@ -32,6 +33,7 @@ async function initApp() {
   router.registerPage('/', SearchComponent);
   router.registerPage('/center/:centerId', CenterSearchComponent);
   router.registerPage('/activity/:activityId', ActivitySearchComponent);
+  router.registerPage('/program/:programId', ProgramSearchComponent);
   router.registerPage('/center/:centerId/activity/:activityId', DetailComponent);
   router.registerPage('/center/:centerId/activity/:activityId/schedule/:sessionId', SessionDetailComponent);
 
@@ -40,10 +42,12 @@ async function initApp() {
      const initData = await FilterService.getInitData();
      store.setCenters(initData.centers);
      store.setActivities(initData.activities);
+     store.setPrograms(initData.programs);
      
      console.info('Datos iniciales cargados:', {
        centersCount: initData.centers.length,
        activitiesCount: initData.activities.length,
+       programsCount: initData.programs.length,
        serverTimestamp: initData.serverTimestamp
      });
    } catch (error) {

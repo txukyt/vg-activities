@@ -193,6 +193,15 @@ export class Router {
       };
     }
 
+     // Detectar patrón /program/:programId (sin activity)
+    const programMatch = pathname.match(/^\/program\/([a-zA-Z0-9]+)$/);
+    if (programMatch) {
+      return {
+        path: '/program/:programId',
+        params: { programId: programMatch[1] }
+      };
+    }
+
     // Ruta default
     return {
       path: '/',

@@ -5,10 +5,15 @@
  */
 
 import { store } from '../store.js';
+import { debounce } from '../utils/debounce.js';
 
 export class SearchForm {
   constructor(onSearch) {
     this.onSearch = onSearch;
+    // Crear versión debounceada de onSearch con 500ms de delay
+    this.debouncedSearch = debounce(() => {
+      this.onSearch();
+    }, 500);
   }
 
   /**
@@ -59,7 +64,7 @@ export class SearchForm {
 
      input.addEventListener('input', (e) => {
        store.setFilters({ searchText: e.target.value });
-       this.onSearch();
+       this.debouncedSearch();
      });
 
      const help = document.createElement('small');
@@ -94,7 +99,7 @@ export class SearchForm {
 
     checkbox.addEventListener('change', (e) => {
       store.setFilters({ hasAvailableSpots: e.target.checked });
-      this.onSearch();
+      this.debouncedSearch();
     });
 
     const label = document.createElement('label');
@@ -137,7 +142,7 @@ export class SearchForm {
     input.addEventListener('change', (e) => {
       const value = e.target.value ? parseInt(e.target.value) : undefined;
       store.setFilters({ age: value });
-      this.onSearch();
+      this.debouncedSearch();
     });
 
     const help = document.createElement('small');

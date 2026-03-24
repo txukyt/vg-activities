@@ -34,6 +34,7 @@ export class FilterService {
           if (
             preloadedState.centers &&
             preloadedState.activities &&
+            preloadedState.programs &&
             preloadedState.serverTimestamp
           ) {
             console.log('Usando window.__PRELOADED_STATE__:', preloadedState);
@@ -154,6 +155,7 @@ export class FilterService {
        // Sección B: Filtros
        activity: [],
        center: [],
+       programs: [],
        dayOfWeek: [],
        timeSlot: [],
        language: [],
@@ -183,6 +185,26 @@ export class FilterService {
         }
       });
       return uniqueActivities.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
+    /**
+     * Extrae nombres únicos de programas.
+     * @param {Array} programs - Array de programas
+     * @returns {Array} Array de objetos con id y name de programas
+     */
+    static getProgramNames(programs) {
+      const seen = new Set();
+      const uniquePrograms = [];
+      programs.forEach(p => {
+        if (!seen.has(p.id) && p.id && (p.title || p.name)) {
+          seen.add(p.id);
+          uniquePrograms.push({
+            id: p.id,
+            name: p.title || p.name || ''
+          });
+        }
+      });
+      return uniquePrograms.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
 
     /**

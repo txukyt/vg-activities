@@ -93,7 +93,9 @@ export class ResultsRenderer {
     // Descripción
     const description = document.createElement('p');
     description.className = 'activity-description';
-    description.textContent = this.#escapeHtml(activity.description.slice(0, 300) + (activity.description.length > 300 ? '...' : ''));
+    if (activity.description) {
+      description.textContent = this.#escapeHtml(activity.description.slice(0, 300) + (activity.description.length > 300 ? '...' : ''));
+    }
 
     // Botón de horarios
     const detailsButton = document.createElement('button');

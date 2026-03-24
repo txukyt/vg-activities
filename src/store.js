@@ -17,10 +17,12 @@ class Store {
           scrollPosition: 0,
           centers: [],
           activities: [],
+          programs: [],
           filtersDrawerOpen: false,  // Control de visibilidad del drawer de filtros en móvil
           facets: null,              // Facetas del último resultado de búsqueda
           fixedActivityFilterFromRoute: null,  // ID de actividad fija desde URL /activity/:id
           fixedCenterFilterFromRoute: null,    // ID de centro fijo desde URL /center/:id
+          fixedProgramFilterFromRoute: null,    // ID de programa fijo desde URL /program/:id
           pagination: {
             offset: 0,                // Número de items saltados
             limit: 50,               // Items por request (SOLR limit)
@@ -139,6 +141,14 @@ class Store {
      this.setState({ activities });
    }
 
+   /**
+    * Establece la lista de programas disponibles.
+    * @param {Array} programs - Array de programas
+    */
+   setPrograms(programs) {
+     this.setState({ programs });
+   }
+
   /**
    * Establece el estado de visibilidad del drawer de filtros en móvil.
    * @param {boolean} isOpen - true para abrir, false para cerrar
@@ -169,6 +179,14 @@ class Store {
    */
   getActivities() {
     return this.state.activities;
+  }
+
+  /**
+   * Obtiene la lista de programas disponibles.
+   * @returns {Array} Array de programas
+   */
+  getPrograms() {
+    return this.state.programs;
   }
 
    /**

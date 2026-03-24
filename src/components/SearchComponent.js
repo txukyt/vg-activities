@@ -50,12 +50,14 @@ export class SearchComponent {
         this.#updateResults();
       });
     
-      // Realizar una búsqueda general sin filtros al inicio si no hay resultados
-      let state = store.getState();
-      if (state.results.length === 0 && !state.loading && !state.error) {
-        await this.#performSearch();
-        state = store.getState();
-      }
+      // Diferir la búsqueda inicial hasta después de que el DOM esté renderizado
+      // Esto asegura que resultsWrapper exista en el árbol del DOM cuando se ejecute #updateResults()
+      const state = store.getState();
+      requestAnimationFrame(() => {
+        if (state.results.length === 0 && !state.loading && !state.error) {
+          this.#performSearch();
+        }
+      });
     
       // Header
       const header = document.createElement('header');
@@ -79,7 +81,7 @@ export class SearchComponent {
        mainElement.appendChild(await this.searchForm.render());
      
        // Crear FilterPanel primero (antes de SelectedFiltersBar)
-       this.filterPanel = new FilterPanel(() => this.#performSearch());
+      this.filterPanel = new FilterPanel(() => this.#performSearch());
      
        // Barra de filtros seleccionados (entre formulario y resultados)
        // Pasar referencia a FilterPanel para que pueda limpiar checkboxes

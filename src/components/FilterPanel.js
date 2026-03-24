@@ -5,7 +5,6 @@
  */
 
 import { store } from '../store.js';
-import { FilterService } from '../services/FilterService.js';
 import { FacetsService } from '../services/FacetsService.js';
 import { FilterItem } from './FilterItem.js';
 
@@ -13,7 +12,6 @@ export class FilterPanel {
   constructor(onFilterChange) {
     this.onFilterChange = onFilterChange;
     this.filterItems = {};
-    this.activities = [];
     this.containerElement = null; // Para almacenar la referencia al contenedor
     this.previousFormCenterId = null; // Para rastrear cambios en el centro del formulario
     this.previousFormActivityId = null; // Para rastrear cambios en la actividad del formulario
@@ -32,8 +30,14 @@ export class FilterPanel {
    */
   async render() {
     const state = store.getState();
-    const facets = state.facets;
-    const filters = state.filters;
+    
+    // Comprobar que facetas y filtros no sean nulos
+    if (!state.facets || !state.filters) {
+      console.warn('[FilterPanel] render: facetas o filtros son nulos', { facets: state.facets, filters: state.filters });
+    }
+    
+    const facets = state.facets || {}; // Validar que facets no sea null
+    const filters = state.filters || {}; // Validar que filters no sea null
 
     const container = document.createElement('section');
     container.className = 'filter-panel';
@@ -54,23 +58,28 @@ export class FilterPanel {
       filtersContainer.appendChild(
         this.#createCenterFilter(facets.libreInt01, filters.center)
       );
+
+      // 2. Programa
+     filtersContainer.appendChild(
+       this.#createProgramFilter(facets.libre4, filters.programs)
+     );
      
-     // 2. Actividad
+     // 3. Actividad
      filtersContainer.appendChild(
        this.#createActivityFilter(facets.libreStr01, filters.activity)
      );
 
-     // 3. Día Semana (con A/B Testing)
+     // 4. Día Semana (con A/B Testing)
      filtersContainer.appendChild(
        this.#createDayOfWeekFilter(facets.libre2, filters.dayOfWeek)
      );
 
-     // 4. Horario
+     // 5. Horario
      filtersContainer.appendChild(
        this.#createTimeSlotFilter(facets.libre1, filters.schedule)
      );
 
-     // 5. Idioma
+     // 6. Idioma
     filtersContainer.appendChild(
       this.#createLanguageFilter(facets.idiomaCelebracion, filters.language)
     );
@@ -115,7 +124,17 @@ export class FilterPanel {
       this.previousCenterFacets = facets.libreInt01 ? JSON.parse(JSON.stringify(facets.libreInt01)) : null;
     }
 
-    // 2. Actividad (libreStr01)
+    // 2. Programa (libre4)
+    if (JSON.stringify(facets.libre4) !== JSON.stringify(this.previousProgramFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Programa cambió');
+      const programFilterElement = filtersContainer.querySelector('[data-filter-id="program"]');
+      if (programFilterElement) {
+        programFilterElement.replaceWith(this.#createProgramFilter(facets.libre4, state.filters.program));
+      }
+      this.previousProgramFacets = facets.libre4 ? JSON.parse(JSON.stringify(facets.libre4)) : null;
+    }
+
+    // 3. Actividad (libreStr01)
     if (JSON.stringify(facets.libreStr01) !== JSON.stringify(this.previousActivityFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Actividad cambió');
       const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
@@ -125,7 +144,17 @@ export class FilterPanel {
       this.previousActivityFacets = facets.libreStr01 ? JSON.parse(JSON.stringify(facets.libreStr01)) : null;
     }
 
-    // 3. Día de Semana (libre2)
+    // 4. Actividad (libreStr01)
+    if (JSON.stringify(facets.libreStr01) !== JSON.stringify(this.previousActivityFacets)) {
+      console.log('[FilterPanel] #updateActivityAndCenterFilters: Actividad cambió');
+      const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
+      if (activityFilterElement) {
+        activityFilterElement.replaceWith(this.#createActivityFilter(facets.libreStr01, state.filters.activity));
+      }
+      this.previousActivityFacets = facets.libreStr01 ? JSON.parse(JSON.stringify(facets.libreStr01)) : null;
+    }
+
+    // 5. Día de Semana (libre2)
     if (JSON.stringify(facets.libre2) !== JSON.stringify(this.previousDayOfWeekFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Día de Semana cambió');
       const dayOfWeekFilterElement = filtersContainer.querySelector('[data-filter-id="dayOfWeek"]');
@@ -135,7 +164,7 @@ export class FilterPanel {
       this.previousDayOfWeekFacets = facets.libre2 ? JSON.parse(JSON.stringify(facets.libre2)) : null;
     }
 
-    // 4. Horario (libre1)
+    // 6. Horario (libre1)
     if (JSON.stringify(facets.libre1) !== JSON.stringify(this.previousTimeSlotFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Horario cambió');
       const timeSlotFilterElement = filtersContainer.querySelector('[data-filter-id="timeSlot"]');
@@ -145,7 +174,7 @@ export class FilterPanel {
       this.previousTimeSlotFacets = facets.libre1 ? JSON.parse(JSON.stringify(facets.libre1)) : null;
     }
 
-    // 5. Idioma (idiomaCelebracion)
+    // 7. Idioma (idiomaCelebracion)
     if (JSON.stringify(facets.idiomaCelebracion) !== JSON.stringify(this.previousLanguageFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Idioma cambió');
       const languageFilterElement = filtersContainer.querySelector('[data-filter-id="language"]');
@@ -193,6 +222,46 @@ export class FilterPanel {
        this.filterItems['activity'] = filterItem;
        const element = filterItem.render();
        element.setAttribute('data-filter-id', 'activity');
+
+       return element;
+     }
+
+     /**
+   * Crea el filtro de Programa
+   * @private
+   */
+      #createProgramFilter(facet, filter) {
+        let programOptions = [];
+        const state = store.getState();
+        const fixedProgramId = state.fixedProgramFilterFromRoute;
+
+        if (facet) {
+          // Usar facetas dinámicas transformadas por FacetsService
+          programOptions = FacetsService.transformProgramFacetsToOptions(facet);
+          
+          // Si hay un filtro fijo desde ruta, SOLO mostrar ese programa
+          if (fixedProgramId) {
+            // Las opciones tienen estructura {id, name} de FacetsService.transformProgramFacetsToOptions
+            programOptions = programOptions.filter(opt => String(opt.id).toLowerCase() === String(fixedProgramId).toLowerCase());
+            console.log('[FilterPanel] Filtro fijo de programa detectado. Solo mostrando:', fixedProgramId, 'Opciones restantes:', programOptions.length);
+          } else {
+            console.log('[FilterPanel] Usando facetas para programas. Opciones:', programOptions.length);
+          }
+        }
+
+       const filterItem = new FilterItem({
+         id: 'program',
+         label: 'Programa',
+         options: programOptions,
+         selectedValues: filter || [],
+         onSelect: () => this.onFilterChange(),
+         hasSearchBox: true,
+         isFixed: fixedProgramId ? true : false  // Marcar si es fijo
+       });
+
+       this.filterItems['program'] = filterItem;
+       const element = filterItem.render();
+       element.setAttribute('data-filter-id', 'program');
 
        return element;
      }
