@@ -11,8 +11,6 @@ import { ActivitySearchComponent } from './components/ActivitySearchComponent.js
 import { ProgramSearchComponent } from './components/ProgramSearchComponent.js';
 import { DetailComponent } from './components/DetailComponent.js';
 import { SessionDetailComponent } from './components/SessionDetailComponent.js';
-import { store } from './store.js';
-import { FilterService } from './services/FilterService.js';
 
 /**
  * Inicializa la aplicación SPA.
@@ -37,25 +35,8 @@ async function initApp() {
   router.registerPage('/center/:centerId/activity/:activityId', DetailComponent);
   router.registerPage('/center/:centerId/activity/:activityId/schedule/:sessionId', SessionDetailComponent);
 
-   // Inicializar datos (centros y actividades)
-   try {
-     const initData = await FilterService.getInitData();
-     store.setCenters(initData.centers);
-     store.setActivities(initData.activities);
-     store.setPrograms(initData.programs);
-     
-     console.info('Datos iniciales cargados:', {
-       centersCount: initData.centers.length,
-       activitiesCount: initData.activities.length,
-       programsCount: initData.programs.length,
-       serverTimestamp: initData.serverTimestamp
-     });
-   } catch (error) {
-     console.error('Error inicializando datos:', error);
-   }
-
   // Obtener ruta actual
-  const { path, params } = Router.getCurrentRouteFromUrl();
+  const { path, params } = Router.getCurrentRouteFromUrl(router);
 
   // Renderizar página inicial
   await router.renderInitial(path, params);

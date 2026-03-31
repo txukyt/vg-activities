@@ -56,32 +56,32 @@ export class FilterPanel {
 
     // 1. Centro
       filtersContainer.appendChild(
-        this.#createCenterFilter(facets.libreInt01, filters.center)
+        this.#createCenterFilter(facets.center, filters.center)
       );
 
       // 2. Programa
      filtersContainer.appendChild(
-       this.#createProgramFilter(facets.libre4, filters.programs)
+       this.#createProgramFilter(facets.program, filters.program)
      );
      
      // 3. Actividad
      filtersContainer.appendChild(
-       this.#createActivityFilter(facets.libreStr01, filters.activity)
+       this.#createActivityFilter(facets.activity, filters.activity)
      );
 
      // 4. Día Semana (con A/B Testing)
      filtersContainer.appendChild(
-       this.#createDayOfWeekFilter(facets.libre2, filters.dayOfWeek)
+       this.#createDayOfWeekFilter(facets.dayOfWeek, filters.dayOfWeek)
      );
 
      // 5. Horario
      filtersContainer.appendChild(
-       this.#createTimeSlotFilter(facets.libre1, filters.schedule)
+       this.#createTimeSlotFilter(facets.schedule, filters.schedule)
      );
 
      // 6. Idioma
     filtersContainer.appendChild(
-      this.#createLanguageFilter(facets.idiomaCelebracion, filters.language)
+      this.#createLanguageFilter(facets.language, filters.language)
     );
 
     // Botón limpiar filtros
@@ -114,74 +114,64 @@ export class FilterPanel {
 
     // Comparar cada faceta de forma independiente y actualizar si cambió
     
-    // 1. Centro (libreInt01)
-    if (JSON.stringify(facets.libreInt01) !== JSON.stringify(this.previousCenterFacets)) {
+    // 1. Centro
+    if (JSON.stringify(facets.center) !== JSON.stringify(this.previousCenterFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Centro cambió');
       const centerFilterElement = filtersContainer.querySelector('[data-filter-id="center"]');
       if (centerFilterElement) {
-        centerFilterElement.replaceWith(this.#createCenterFilter(facets.libreInt01, state.filters.center));
+        centerFilterElement.replaceWith(this.#createCenterFilter(facets.center, state.filters.center));
       }
-      this.previousCenterFacets = facets.libreInt01 ? JSON.parse(JSON.stringify(facets.libreInt01)) : null;
+      this.previousCenterFacets = facets.center ? JSON.parse(JSON.stringify(facets.center)) : null;
     }
 
-    // 2. Programa (libre4)
-    if (JSON.stringify(facets.libre4) !== JSON.stringify(this.previousProgramFacets)) {
+    // 2. Programa
+    if (JSON.stringify(facets.program) !== JSON.stringify(this.previousProgramFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Programa cambió');
       const programFilterElement = filtersContainer.querySelector('[data-filter-id="program"]');
       if (programFilterElement) {
-        programFilterElement.replaceWith(this.#createProgramFilter(facets.libre4, state.filters.program));
+        programFilterElement.replaceWith(this.#createProgramFilter(facets.program, state.filters.program));
       }
-      this.previousProgramFacets = facets.libre4 ? JSON.parse(JSON.stringify(facets.libre4)) : null;
+      this.previousProgramFacets = facets.program ? JSON.parse(JSON.stringify(facets.program)) : null;
     }
 
-    // 3. Actividad (libreStr01)
-    if (JSON.stringify(facets.libreStr01) !== JSON.stringify(this.previousActivityFacets)) {
+    // 3. Actividad
+    if (JSON.stringify(facets.activity) !== JSON.stringify(this.previousActivityFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Actividad cambió');
       const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
       if (activityFilterElement) {
-        activityFilterElement.replaceWith(this.#createActivityFilter(facets.libreStr01, state.filters.activity));
+        activityFilterElement.replaceWith(this.#createActivityFilter(facets.activity, state.filters.activity));
       }
-      this.previousActivityFacets = facets.libreStr01 ? JSON.parse(JSON.stringify(facets.libreStr01)) : null;
+      this.previousActivityFacets = facets.activity ? JSON.parse(JSON.stringify(facets.activity)) : null;
     }
 
-    // 4. Actividad (libreStr01)
-    if (JSON.stringify(facets.libreStr01) !== JSON.stringify(this.previousActivityFacets)) {
-      console.log('[FilterPanel] #updateActivityAndCenterFilters: Actividad cambió');
-      const activityFilterElement = filtersContainer.querySelector('[data-filter-id="activity"]');
-      if (activityFilterElement) {
-        activityFilterElement.replaceWith(this.#createActivityFilter(facets.libreStr01, state.filters.activity));
-      }
-      this.previousActivityFacets = facets.libreStr01 ? JSON.parse(JSON.stringify(facets.libreStr01)) : null;
-    }
-
-    // 5. Día de Semana (libre2)
-    if (JSON.stringify(facets.libre2) !== JSON.stringify(this.previousDayOfWeekFacets)) {
+    // 3. Día de Semana
+    if (JSON.stringify(facets.dayOfWeek) !== JSON.stringify(this.previousDayOfWeekFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Día de Semana cambió');
       const dayOfWeekFilterElement = filtersContainer.querySelector('[data-filter-id="dayOfWeek"]');
       if (dayOfWeekFilterElement) {
-        dayOfWeekFilterElement.replaceWith(this.#createDayOfWeekFilter(facets.libre2, state.filters.dayOfWeek));
+        dayOfWeekFilterElement.replaceWith(this.#createDayOfWeekFilter(facets.dayOfWeek, state.filters.dayOfWeek));
       }
-      this.previousDayOfWeekFacets = facets.libre2 ? JSON.parse(JSON.stringify(facets.libre2)) : null;
+      this.previousDayOfWeekFacets = facets.dayOfWeek ? JSON.parse(JSON.stringify(facets.dayOfWeek)) : null;
     }
 
-    // 6. Horario (libre1)
-    if (JSON.stringify(facets.libre1) !== JSON.stringify(this.previousTimeSlotFacets)) {
+    // 4. Horario
+    if (JSON.stringify(facets.schedule) !== JSON.stringify(this.previousTimeSlotFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Horario cambió');
       const timeSlotFilterElement = filtersContainer.querySelector('[data-filter-id="timeSlot"]');
       if (timeSlotFilterElement) {
-        timeSlotFilterElement.replaceWith(this.#createTimeSlotFilter(facets.libre1, state.filters.schedule));
+        timeSlotFilterElement.replaceWith(this.#createTimeSlotFilter(facets.schedule, state.filters.schedule));
       }
-      this.previousTimeSlotFacets = facets.libre1 ? JSON.parse(JSON.stringify(facets.libre1)) : null;
+      this.previousTimeSlotFacets = facets.schedule ? JSON.parse(JSON.stringify(facets.schedule)) : null;
     }
 
-    // 7. Idioma (idiomaCelebracion)
-    if (JSON.stringify(facets.idiomaCelebracion) !== JSON.stringify(this.previousLanguageFacets)) {
+    // 5. Idioma
+    if (JSON.stringify(facets.language) !== JSON.stringify(this.previousLanguageFacets)) {
       console.log('[FilterPanel] #updateActivityAndCenterFilters: Idioma cambió');
       const languageFilterElement = filtersContainer.querySelector('[data-filter-id="language"]');
       if (languageFilterElement) {
-        languageFilterElement.replaceWith(this.#createLanguageFilter(facets.idiomaCelebracion, state.filters.language));
+        languageFilterElement.replaceWith(this.#createLanguageFilter(facets.language, state.filters.language));
       }
-      this.previousLanguageFacets = facets.idiomaCelebracion ? JSON.parse(JSON.stringify(facets.idiomaCelebracion)) : null;
+      this.previousLanguageFacets = facets.language ? JSON.parse(JSON.stringify(facets.language)) : null;
     }
   }
 
@@ -192,21 +182,10 @@ export class FilterPanel {
    */
       #createActivityFilter(facet, filter) {
         let activityOptions = [];
-        const state = store.getState();
-        const fixedActivityId = state.fixedActivityFilterFromRoute;
 
         if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
           activityOptions = FacetsService.transformActivityFacetsToOptions(facet);
-          
-          // Si hay un filtro fijo desde ruta, SOLO mostrar esa actividad
-          if (fixedActivityId) {
-            // Las opciones tienen estructura {id, name} de FacetsService.transformActivityFacetsToOptions
-            activityOptions = activityOptions.filter(opt => String(opt.id).toLowerCase() === String(fixedActivityId).toLowerCase());
-            console.log('[FilterPanel] Filtro fijo de actividad detectado. Solo mostrando:', fixedActivityId, 'Opciones restantes:', activityOptions.length);
-          } else {
-            console.log('[FilterPanel] Usando facetas para actividades. Opciones:', activityOptions.length);
-          }
         }
 
        const filterItem = new FilterItem({
@@ -216,7 +195,6 @@ export class FilterPanel {
          selectedValues: filter || [],
          onSelect: () => this.onFilterChange(),
          hasSearchBox: true,
-         isFixed: fixedActivityId ? true : false  // Marcar si es fijo
        });
 
        this.filterItems['activity'] = filterItem;
@@ -232,21 +210,10 @@ export class FilterPanel {
    */
       #createProgramFilter(facet, filter) {
         let programOptions = [];
-        const state = store.getState();
-        const fixedProgramId = state.fixedProgramFilterFromRoute;
 
         if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
           programOptions = FacetsService.transformProgramFacetsToOptions(facet);
-          
-          // Si hay un filtro fijo desde ruta, SOLO mostrar ese programa
-          if (fixedProgramId) {
-            // Las opciones tienen estructura {id, name} de FacetsService.transformProgramFacetsToOptions
-            programOptions = programOptions.filter(opt => String(opt.id).toLowerCase() === String(fixedProgramId).toLowerCase());
-            console.log('[FilterPanel] Filtro fijo de programa detectado. Solo mostrando:', fixedProgramId, 'Opciones restantes:', programOptions.length);
-          } else {
-            console.log('[FilterPanel] Usando facetas para programas. Opciones:', programOptions.length);
-          }
         }
 
        const filterItem = new FilterItem({
@@ -256,7 +223,6 @@ export class FilterPanel {
          selectedValues: filter || [],
          onSelect: () => this.onFilterChange(),
          hasSearchBox: true,
-         isFixed: fixedProgramId ? true : false  // Marcar si es fijo
        });
 
        this.filterItems['program'] = filterItem;
@@ -273,21 +239,10 @@ export class FilterPanel {
      */
       #createCenterFilter(facet, filter) {
         let centerOptions = [];
-        const state = store.getState();
-        const fixedCenterId = state.fixedCenterFilterFromRoute;
 
         if (facet) {
           // Usar facetas dinámicas transformadas por FacetsService
           centerOptions = FacetsService.transformCenterFacetsToOptions(facet);
-          
-          // Si hay un filtro fijo desde ruta, SOLO mostrar ese centro
-          if (fixedCenterId) {
-            // Las opciones tienen estructura {id, name} de FacetsService.transformCenterFacetsToOptions
-            centerOptions = centerOptions.filter(opt => String(opt.id) === String(fixedCenterId));
-            console.log('[FilterPanel] Filtro fijo de centro detectado. Solo mostrando:', fixedCenterId, 'Opciones restantes:', centerOptions.length);
-          } else {
-            console.log('[FilterPanel] Usando facetas para centros. Opciones:', centerOptions.length);
-          }
         }
 
         const filterItem = new FilterItem({
@@ -297,7 +252,6 @@ export class FilterPanel {
           selectedValues: filter || [],
           onSelect: () => this.onFilterChange(),
           hasSearchBox: true,
-          isFixed: fixedCenterId ? true : false  // Marcar si es fijo
         });
 
         this.filterItems['center'] = filterItem;
@@ -412,24 +366,10 @@ export class FilterPanel {
     button.textContent = 'Limpiar Filtros';
     button.setAttribute('aria-label', 'Limpiar todos los filtros');
     
-    const state = store.getState();
-    const hasFixedFilters = state.fixedActivityFilterFromRoute || state.fixedCenterFilterFromRoute;
-
     button.addEventListener('click', () => {
-      // Guardar los filtros fijos antes de resetear
-      const fixedActivityId = state.fixedActivityFilterFromRoute;
-      const fixedCenterId = state.fixedCenterFilterFromRoute;
       
       // Resetear solo Sección B (filtros)
       store.resetFilters();
-      
-      // RE-aplicar los filtros fijos si existen
-      if (fixedActivityId) {
-        store.setFilters({ activity: [fixedActivityId] });
-      }
-      if (fixedCenterId) {
-        store.setFilters({ center: [fixedCenterId] });
-      }
 
       // Limpiar inputs
       Object.values(this.filterItems).forEach(filterItem => {

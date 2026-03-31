@@ -35,7 +35,6 @@ export class FilterItem {
     this.searchText = '';
     this.element = null;
     this.isExpanded = false; // Estado de paginación
-    this.isFixed = config.isFixed || false; // Si el filtro viene de una ruta fija
   }
 
    /**
@@ -57,8 +56,7 @@ export class FilterItem {
      detailsContent.className = 'details-content';
 
      // Caja de búsqueda (fuera del summary, dentro del contenido)
-     // NO mostrar si el filtro es fijo desde ruta
-     if (this.hasSearchBox && !this.isFixed) {
+     if (this.hasSearchBox) {
        detailsContent.appendChild(this.#createSearchBox());
      }
 
@@ -212,23 +210,12 @@ export class FilterItem {
     const optionDiv = document.createElement('div');
     optionDiv.className = 'filter-option';
     
-    // Si es filtro fijo y está seleccionado, agregar clase CSS
-    if (this.isFixed && isSelected) {
-      optionDiv.classList.add('filter-option-fixed');
-    }
-
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = `${this.id}-${optionValue}`;
     checkbox.value = optionValue;
     checkbox.checked = isSelected;
     checkbox.setAttribute('aria-label', `${optionLabel}`);
-    
-    // Deshabilitar checkbox si es filtro fijo
-    if (this.isFixed) {
-      checkbox.disabled = true;
-      checkbox.setAttribute('title', 'Este filtro es obligatorio para esta vista');
-    }
 
     checkbox.addEventListener('change', () => {
       this.#toggleOption(optionValue);
@@ -237,11 +224,6 @@ export class FilterItem {
     const label = document.createElement('label');
     label.htmlFor = `${this.id}-${optionValue}`;
     label.textContent = optionLabel;
-    
-    // Deshabilitar label si es filtro fijo
-    if (this.isFixed) {
-      label.style.opacity = '0.7';
-    }
 
     optionDiv.appendChild(checkbox);
     optionDiv.appendChild(label);

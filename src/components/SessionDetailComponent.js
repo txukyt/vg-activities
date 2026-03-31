@@ -27,10 +27,64 @@ export class SessionDetailComponent {
 
     // Intentar cargar la actividad y la sesión
     try {
-      //this.activity = await SearchService.getActivityById(this.activityId);
+      // ESTRATEGIA OPTIMIZADA CON CACHÉ:
+      // 1. Intentar obtener sesión desde store (guardada al hacer click desde DetailComponent)
+      // 2. Si no existe en cache, obtener desde backend
 
-      this.activity = this.#getActivityFromCache(this.activityId);
-      
+      let sessionFromCache = store.getCurrentSession();
+      let sessionFromBackend = null;
+
+      console.log('[SessionDetailComponent] Iniciando carga de sesión', {
+        sessionId: this.sessionId,
+        sessionInCache: !!sessionFromCache
+      });
+
+      // PASO 1: Intentar usar sesión del cache
+      if (sessionFromCache && sessionFromCache.id === this.sessionId) {
+        console.log('[SessionDetailComponent] Sesión encontrada en cache', {
+          sessionId: this.sessionId,
+          fromCache: true
+        });
+        this.session = sessionFromCache;
+        
+        // Obtener actividad del cache
+        this.activity = this.#getActivityFromCache(this.activityId);
+        
+        if (!this.activity) {
+          // Actividad no en cache, obtener del backend
+          console.log('[SessionDetailComponent] Actividad no en cache, consultando backend', {
+            activityId: this.activityId
+          });
+          sessionFromBackend = await this.#loadActivityFromBackend(this.activityId);
+          if (sessionFromBackend) {
+            this.activity = sessionFromBackend;
+          }
+        }
+      } else {
+        // PASO 2: Sesión no en cache, obtener actividad completa del backend
+        console.log('[SessionDetailComponent] Sesión no en cache, consultando backend', {
+          sessionId: this.sessionId,
+          fromCache: false
+        });
+        
+        sessionFromBackend = await this.#loadActivityFromBackend(this.activityId);
+        
+        if (sessionFromBackend && sessionFromBackend.schedules) {
+          // Buscar la sesión específica en la respuesta del backend
+          this.session = sessionFromBackend.schedules.find(s => s.id === this.sessionId);
+          this.activity = sessionFromBackend.activity;
+          
+          // Guardar sesión en store para futuros accesos
+          if (this.session) {
+            store.setCurrentSession(this.session);
+            console.log('[SessionDetailComponent] Sesión guardada en cache desde backend', {
+              sessionId: this.sessionId
+            });
+          }
+        }
+      }
+
+      // Validaciones finales
       if (!this.activity) {
         container.innerHTML = `
           <div class="error">
@@ -41,9 +95,6 @@ export class SessionDetailComponent {
         return container;
       }
 
-      // Buscar la sesión por sessionId
-      this.session = this.activity.sessions.find(s => s.id === this.sessionId);
-      
       if (!this.session) {
         container.innerHTML = `
           <div class="error">
@@ -68,6 +119,9 @@ export class SessionDetailComponent {
       const enrollSection = this.#createEnrollSection();
       container.appendChild(enrollSection);
 
+      // Restaurar scroll al inicio del componente
+      this.#resetScroll();
+
     } catch (error) {
       console.error('Error cargando sesión:', error);
       container.innerHTML = `
@@ -82,6 +136,17 @@ export class SessionDetailComponent {
   }
 
   /**
+   * Restaura el scroll al inicio del componente después de renderizar.
+   * Se ejecuta con requestAnimationFrame para asegurar que la UI esté lista.
+   * @private
+   */
+  #resetScroll() {
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+  }
+
+/**
    * Crea el header con botón de volver.
    * @private
    */
@@ -319,14 +384,58 @@ export class SessionDetailComponent {
       }
     }
 
-    console.warn('[DetailComponent] Actividad no encontrada en cache', { 
+    console.warn('[DetailComponent] Actividad no encontrada en cache', {
       activityId,
       centersCount: state.results.length,
-      activitiesInCache: state.results.reduce((sum, cg) => 
+      activitiesInCache: state.results.reduce((sum, cg) =>
         sum + (cg.activities?.length || 0), 0
       )
     });
     return null;
+  }
+
+  /**
+   * Obtiene una actividad del backend con todas sus sesiones.
+   * Se utiliza como fallback cuando la sesión no está en cache del store.
+   *
+   * @private
+   * @param {string} activityId - ID de la actividad a obtener
+   * @returns {Promise<Object|null>} Actividad con sesiones o null si falla
+   */
+  async #loadActivityFromBackend() {
+    try {
+      console.log('[SessionDetailComponent] Obteniendo actividad desde backend', {
+      });
+
+
+      const filters = {
+        searchType: 'detail',
+        center: [this.centerId],
+        activity: [this.activityId],
+        scheduleId: this.sessionId
+      };
+
+      // Utilizar SearchService para obtener la actividad con todas sus sesiones
+      const activity = await SearchService.getActivityById(filters, 0, 1);
+
+      if (!activity) {
+        console.warn('[SessionDetailComponent] Backend no devolvió actividad', {
+        });
+        return null;
+      }
+
+      console.log('[SessionDetailComponent] Actividad obtenida del backend exitosamente', {
+        name: activity.name,
+        sessionsCount: activity.sessions?.length || 0
+      });
+
+      return activity;
+    } catch (error) {
+      console.error('[SessionDetailComponent] Error obteniendo actividad del backend:', {
+        error: error.message
+      });
+      return null;
+    }
   }
 
 }

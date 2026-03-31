@@ -1,7 +1,6 @@
 /**
  * router.js
  * Router SPA para manejar rutas.
- * Rutas: / (Búsqueda), /center/:centerId/activity/:activityId (Detalle) y /center/:centerId/activity/:activityId/schedule/:sessionId (Schedule)
  * Soporta popstate para conservar resultados y scroll al volver.
  */
 
@@ -13,7 +12,6 @@ export class Router {
     this.appElement = appElement;
     this.routes = new Map();
     this.currentRoute = null;
-    this.pageComponents = {};
 
     this.#setupEventListeners();
   }
@@ -138,10 +136,22 @@ export class Router {
   }
 
   /**
+   * Valida si una ruta está registrada en el router.
+   * @private
+   * @param {string} path - Ruta a validar
+   * @returns {boolean} true si la ruta está registrada
+   */
+  #isValidRoute(path) {
+    return this.routes.has(path);
+  }
+
+  /**
    * Obtiene la ruta inicial desde la URL del navegador.
+   * Si detecta una URL inválida, realiza una redirección a la ruta base.
+   * @param {Router} router - Instancia del router (para validar rutas)
    * @returns {{ path: string, params: Object }} Ruta y parámetros
    */
-  static getCurrentRouteFromUrl() {
+  static getCurrentRouteFromUrl(router) {
     let pathname = window.location.pathname;
 
     // Remover el base path si está presente
@@ -202,7 +212,18 @@ export class Router {
       };
     }
 
-    // Ruta default
+    // Ruta default - pero primero verificar si es inválida
+    // Si router está disponible y la URL actual no es válida, redirigir
+    if (router && pathname !== '/' && !router.#isValidRoute(pathname)) {
+      // Redireccionar la URL a la ruta base usando replaceState
+      const baseUrl = BASE_PATH.replace(/\/$/, '') + '/';
+      window.history.replaceState(
+        { path: '/', params: {} },
+        '',
+        baseUrl
+      );
+    }
+
     return {
       path: '/',
       params: {}

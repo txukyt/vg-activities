@@ -2,14 +2,13 @@
  * DetailComponent.js
  * Componente para mostrar los detalles completos de una actividad.
  * 
- * MEJORA v3: Cache-First Con Fallback A Backend
- * - PRIMERO: Busca actividad en cache (state.results) → Renderiza INMEDIATAMENTE
- * - SI NO EN CACHE: Muestra indicador de carga e intenta obtener del backend
- * - SI BACKEND DEVUELVE: Enriquece datos y renderiza
- * - SI FALLA TODO: Mostrar error (no mostrar error si backend estaba cargando)
- * - PARALELO: Fetch del backend para actualizar sesiones (igual que v2)
- * - Indicador visual de "actualizando" mientras se obtienen datos frescos
- * - Si backend falla en carga paralela, mantiene datos cacheados/actuales
+ * MEJORA v4: Backend-First Strategy
+ * - PRIMERO: Mostrar indicador de carga inicial
+ * - SEGUNDO: Llamar al backend para obtener datos de la actividad
+ * - SI BACKEND DEVUELVE: Enriquecer con datos del centro y renderizar
+ * - SI FALLA: Mostrar error al usuario
+ * - NO CACHE: Ya no se usa cache como fuente principal de datos
+ * - LINEAL: Flujo secuencial y predecible para mejor UX
  */
 
 import { store } from '../store.js';
@@ -17,22 +16,20 @@ import { SearchService } from '../services/SearchService.js';
 import { ScheduleGridComponent } from './ScheduleGridComponent.js';
 
 export class DetailComponent {
-   constructor(router = null, params = {}) {
-     this.centerId = params.centerId;
-     this.activityId = params.activityId;
-     this.router = router;
-     this.activity = null;
-     this.isUpdatingFromBackend = false;
-   }
+    constructor(router = null, params = {}) {
+      this.centerId = params.centerId;
+      this.activityId = params.activityId;
+      this.router = router;
+      this.activity = null;
+    }
 
   /**
    * Renderiza el componente de detalle.
-   * FLUJO CACHE-FIRST CON FALLBACK A BACKEND:
-   * 1. Busca actividad en cache (state.results) → Renderiza INMEDIATO
-   * 2. Si no existe → Mostrar indicador "cargando..." e intentar backend
-   * 3. Si backend devuelve → Enriquecer y renderizar
-   * 4. Si backend falla → Mostrar error
-   * 5. En paralelo → Actualizar sesiones desde backend
+   * FLUJO BACKEND-FIRST:
+   * 1. Mostrar indicador de carga inicial
+   * 2. Llamar al backend para obtener la actividad
+   * 3. Si backend devuelve → Enriquecer con datos del centro y renderizar
+   * 4. Si backend falla → Mostrar error al usuario
    * 
    * @returns {HTMLElement} Elemento del componente
    */
@@ -41,82 +38,54 @@ export class DetailComponent {
     container.className = 'detail-component';
 
     try {
-      // PASO 1: Intentar obtener del cache (INMEDIATO - sin bloquear UI)
-      this.activity = this.#getActivityFromCache(this.activityId);
+      // PASO 1: Mostrar indicador de carga inicial
+      console.log('[DetailComponent] Iniciando renderizado (Backend-First)', {
+        activityId: this.activityId
+      });
+      
+      this.#showInitialLoadingIndicator(container);
 
-      if (this.activity) {
-        // ===== CASO 1: CACHE HIT → Renderizar inmediatamente =====
-        console.log('[DetailComponent] Actividad encontrada en cache', {
+      // PASO 2: Obtener actividad del backend
+      const backendActivity = await this.#loadActivityFromBackend();
+
+      if (backendActivity) {
+        // ===== ÉXITO: Backend devolvió la actividad =====
+        console.log('[DetailComponent] Actividad obtenida del backend', {
           activityId: this.activityId,
-          title: this.activity.title,
-          sessionsCount: this.activity.sessions?.length || 0,
-          source: 'CACHE'
+          title: backendActivity.name,
+          sessionsCount: backendActivity.sessions?.length || 0
         });
 
+        this.activity = backendActivity;
         store.setCurrentActivity(this.activity);
 
-        // Renderizar inmediatamente
+        // Ocultar indicador de carga
+        this.#hideInitialLoadingIndicator(container);
+
+        // Renderizar con datos del backend
         const header = this.#createHeader();
         container.appendChild(header);
 
         const content = this.#createContent();
         container.appendChild(content);
 
-        // Fetch del backend EN PARALELO para actualizar sesiones
-        this.#fetchUpdatedActivityData(container);
+        // Restaurar scroll al inicio del componente
+        this.#resetScroll();
 
       } else {
-        // ===== CASO 2: CACHE MISS → Intentar backend =====
-        console.warn('[DetailComponent] Actividad no encontrada en cache, intentando backend', { 
-          activityId: this.activityId 
+        // ===== ERROR: Backend no devolvió la actividad =====
+        console.error('[DetailComponent] No se encontró actividad en backend', {
+          activityId: this.activityId
         });
 
-        // Mostrar indicador de carga inicial
-        this.#showInitialLoadingIndicator(container);
+        this.#hideInitialLoadingIndicator(container);
 
-        // Intentar obtener del backend
-        const backendActivity = await this.#loadActivityFromBackend();
-
-        if (backendActivity) {
-          // ===== CASO 2A: BACKEND HIT → Enriquecer y renderizar =====
-          console.log('[DetailComponent] Actividad obtenida del backend', {
-            activityId: this.activityId,
-            title: backendActivity.name,
-            source: 'BACKEND',
-            sessionsCount: backendActivity.sessions?.length || 0
-          });
-
-          this.activity = backendActivity;
-          store.setCurrentActivity(this.activity);
-
-          // Ocultar indicador de carga
-          this.#hideInitialLoadingIndicator(container);
-
-          // Renderizar con datos del backend
-          const header = this.#createHeader();
-          container.appendChild(header);
-
-          const content = this.#createContent();
-          container.appendChild(content);
-
-          // Fetch del backend EN PARALELO para actualizar/enriquecer sesiones
-          this.#fetchUpdatedActivityData(container);
-
-        } else {
-          // ===== CASO 2B: BACKEND FAIL → Mostrar error =====
-          console.error('[DetailComponent] No se encontró actividad en cache ni en backend', {
-            activityId: this.activityId
-          });
-
-          this.#hideInitialLoadingIndicator(container);
-
-          container.innerHTML = `
-            <div class="error">
-              <p>Actividad no encontrada</p>
-              <button class="btn btn-primary" onclick="window.history.back()">Volver</button>
-            </div>
-          `;
-        }
+        container.innerHTML = `
+          <div class="error">
+            <p>Actividad no encontrada</p>
+            <button class="btn btn-primary" onclick="window.history.back()">Volver</button>
+          </div>
+        `;
       }
 
     } catch (error) {
@@ -135,6 +104,18 @@ export class DetailComponent {
   }
 
   /**
+   * Restaura el scroll al inicio del componente después de renderizar.
+   * Se ejecuta con un pequeño delay para asegurar que la UI esté lista.
+   * @private
+   */
+  #resetScroll() {
+    // Usar requestAnimationFrame para ejecutar después del repaint
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+  }
+
+/**
    * Crea el header con botón de volver.
    * @private
    */
@@ -165,7 +146,7 @@ export class DetailComponent {
     const content = document.createElement('article');
     content.className = 'detail-content';
 
-    const activity = this.activity;
+    const schedules = this.activity;
 
     // Info principal
     const infoDiv = document.createElement('div');
@@ -173,29 +154,26 @@ export class DetailComponent {
 
     const title = document.createElement('h1');
     title.className = 'detail-title';
-    title.textContent = this.#escapeHtml(activity.name);
+    title.textContent = this.#escapeHtml(schedules.activity.name);
 
     const centerBadge = document.createElement('div');
     centerBadge.className = 'center-badge';
-    centerBadge.textContent = this.#escapeHtml(activity.centerName);
+    centerBadge.textContent = this.#escapeHtml(schedules.center.name);
 
     const description = document.createElement('p');
     description.className = 'detail-description';
-    description.textContent = this.#escapeHtml(activity.description);
+    description.textContent = this.#escapeHtml(schedules.activity.description);
 
     infoDiv.appendChild(title);
     infoDiv.appendChild(centerBadge);
     infoDiv.appendChild(description);
 
-    // Detalles en grid
-    const detailsGrid = this.#createDetailsGrid();
-
     // Grid de horarios (si tiene sesiones)
     let scheduleGrid = null;
-    if (activity.sessions && activity.sessions.length > 0) {
+     if (schedules.schedules && schedules.schedules.length > 0) {
       const scheduleComponent = new ScheduleGridComponent(
-        activity.sessions,
-        (session) => this.#handleSessionClick(session)
+        schedules.schedules,
+        (schedule) => this.#handleSessionClick(schedule)
       );
       scheduleGrid = scheduleComponent.render();
     }
@@ -205,7 +183,6 @@ export class DetailComponent {
     wrapper.className = 'detail-wrapper';
 
     wrapper.appendChild(infoDiv);
-    wrapper.appendChild(detailsGrid);
     
     // Agregar grid de horarios si existe
     if (scheduleGrid) {
@@ -214,57 +191,6 @@ export class DetailComponent {
 
     content.appendChild(wrapper);
     return content;
-  }
-
-  /**
-   * Crea el grid de detalles.
-   * @private
-   */
-  #createDetailsGrid() {
-    const grid = document.createElement('div');
-    grid.className = 'details-grid';
-
-    const activity = this.activity;
-
-    // Los metadatos ahora están en las sesiones, no en la actividad
-    // Mostrar solo información básica de la actividad
-    const details = [
-      {
-        label: 'Centro',
-        value: this.#escapeHtml(activity.centerName),
-        icon: '🏢'
-      },
-      {
-        label: 'Tipo',
-        value: this.#escapeHtml(activity.centerType),
-        icon: '🏛'
-      }
-    ];
-
-    details.forEach(detail => {
-      const detailItem = document.createElement('div');
-      detailItem.className = `detail-item ${detail.className || ''}`;
-
-      const icon = document.createElement('span');
-      icon.className = 'detail-icon';
-      icon.textContent = detail.icon;
-
-      const labelSpan = document.createElement('span');
-      labelSpan.className = 'detail-label';
-      labelSpan.textContent = detail.label;
-
-      const valueSpan = document.createElement('span');
-      valueSpan.className = 'detail-value';
-      valueSpan.textContent = this.#escapeHtml(detail.value);
-
-      detailItem.appendChild(icon);
-      detailItem.appendChild(labelSpan);
-      detailItem.appendChild(valueSpan);
-
-      grid.appendChild(detailItem);
-    });
-
-    return grid;
   }
 
   /**
@@ -305,266 +231,72 @@ export class DetailComponent {
     return div.innerHTML;
   }
 
-   /**
-    * Obtiene una actividad del backend cuando no está en cache.
-    * Intenta cargar desde SearchService.getActivityById().
-    * Enriquece con información del centro si es posible.
-    * 
-    * @private
-    * @returns {Promise<Object|null>} Actividad enriquecida o null si falla
-    */
-   async #loadActivityFromBackend() {
-     try {
-       console.log('[DetailComponent] Iniciando búsqueda en backend', {
-         activityId: this.activityId
-       });
-
-       // Obtener actividad del backend (SearchService obtiene del store.activities)
-       const activity = await SearchService.getActivityById(this.activityId);
-
-       if (!activity) {
-         console.warn('[DetailComponent] Backend no devolvió actividad', {
-           activityId: this.activityId
-         });
-         return null;
-       }
-
-       console.log('[DetailComponent] Actividad obtenida del backend', {
-         activityId: this.activityId,
-         title: activity.name,
-         hasSessions: !!activity.sessions
-       });
-
-       // Intentar enriquecer con datos del centro
-       // Buscar en state.results para obtener centerName y centerType
-       const enrichedActivity = this.#enrichActivityWithCenterData(activity);
-
-       return enrichedActivity;
-
-     } catch (error) {
-       console.error('[DetailComponent] Error obteniendo actividad del backend:', {
-         activityId: this.activityId,
-         error: error.message
-       });
-       return null; // No lanzar error, retornar null para que se muestre error genérico
-     }
-   }
-
-   /**
-    * Enriquece una actividad con datos del centro.
-    * Busca el centerName y centerType en state.results.
-    * 
-    * @private
-    * @param {Object} activity - Actividad base
-    * @returns {Object} Actividad enriquecida
-    */
-   #enrichActivityWithCenterData(activity) {
-     try {
-       const state = store.getState();
-       
-       // Buscar la actividad en state.results para obtener datos del centro
-       if (Array.isArray(state.results)) {
-         for (const centerGroup of state.results) {
-           if (centerGroup.activities) {
-             const found = centerGroup.activities.find(a => a.id === activity.id);
-             if (found) {
-               // Devolver actividad con datos del centro
-               return {
-                 ...activity,
-                 centerName: centerGroup.center?.name || 'Centro desconocido',
-                 centerType: centerGroup.center?.type || 'Centro'
-               };
-             }
-           }
-         }
-       }
-
-       // Si no se encuentra en results, usar valores por defecto
-       console.warn('[DetailComponent] No se encontraron datos del centro, usando valores por defecto', {
-         activityId: activity.id
-       });
-
-       return {
-         ...activity,
-         centerName: 'Centro desconocido',
-         centerType: 'Centro'
-       };
-
-     } catch (error) {
-       console.error('[DetailComponent] Error enriqueciendo actividad:', error);
-       return {
-         ...activity,
-         centerName: 'Centro desconocido',
-         centerType: 'Centro'
-       };
-     }
-   }
-
-   /**
-    * Extrae una actividad del cache (state.results).
-    * Navega la estructura jerárquica: Centro → Actividades.
-    * 
-    * @private
-    * @param {string} activityId - ID de la actividad a buscar
-    * @returns {Object|null} Actividad con sesiones o null si no existe
-    */
-   #getActivityFromCache(activityId) {
-    const state = store.getState();
-    
-    // state.results es un array de centros agrupados
-    if (!Array.isArray(state.results) || state.results.length === 0) {
-      console.warn('[DetailComponent] Cache vacío o inválido', {
-        resultsType: typeof state.results,
-        resultsLength: Array.isArray(state.results) ? state.results.length : 'N/A'
-      });
-      return null;
-    }
-
-    // Buscar la actividad en la estructura jerárquica
-    for (const centerGroup of state.results) {
-      if (centerGroup.activities && Array.isArray(centerGroup.activities)) {
-        const activity = centerGroup.activities.find(a => a.id === activityId);
-        
-        if (activity) {
-          // Enriquecer con información del centro
-          return {
-            ...activity,
-            centerName: centerGroup.center?.name || 'Centro desconocido',
-            centerType: centerGroup.center?.type || 'Centro'
-          };
-        }
-      }
-    }
-
-    console.warn('[DetailComponent] Actividad no encontrada en cache', { 
-      activityId,
-      centersCount: state.results.length,
-      activitiesInCache: state.results.reduce((sum, cg) => 
-        sum + (cg.activities?.length || 0), 0
-      )
-    });
-    return null;
-  }
-
-  /**
-   * Obtiene datos actualizados del backend.
-   * Ejecuta en paralelo sin bloquear la UI.
-   * Actualiza las sesiones si hay cambios.
-   * 
-   * @private
-   * @param {HTMLElement} container - Contenedor para agregar indicadores
-   */
-  async #fetchUpdatedActivityData(container) {
-    // Evitar múltiples requests simultáneos
-    if (this.isUpdatingFromBackend) {
-      console.log('[DetailComponent] Ya hay un fetch en curso');
-      return;
-    }
-
-    try {
-      this.isUpdatingFromBackend = true;
-
-      console.log('[DetailComponent] Iniciando fetch del backend', {
-        activityId: this.activityId
-      });
-
-      // Mostrar indicador de actualización
-      this.#showLoadingIndicator(container);
-
-      // Fetch del backend (SearchService ahora obtiene del store)
-      const updatedActivity = await SearchService.getActivityById(this.activityId);
-
-      if (updatedActivity && updatedActivity.sessions) {
-        console.log('[DetailComponent] Datos del backend recibidos', {
+    /**
+     * Obtiene una actividad del backend.
+     * FLUJO Backend-First:
+     * 1. SearchService.getActivityById() consulta SolrGateway.searchDetail()
+     * 2. SolrGateway envía petición POST al backend SOLR
+     * 3. Backend devuelve { activity, sessions }
+     * 4. SearchService enriquece la actividad con datos del centro
+     * 5. DetailComponent recibe actividad lista para renderizar
+     *
+     * @private
+     * @returns {Promise<Object|null>} Actividad enriquecida o null si falla
+     */
+    async #loadActivityFromBackend() {
+      try {
+        console.log('[DetailComponent] Iniciando carga de actividad desde backend', {
           activityId: this.activityId,
-          oldSessionsCount: this.activity.sessions?.length || 0,
-          newSessionsCount: updatedActivity.sessions.length
+          centerId: this.centerId
         });
 
-        // Actualizar actividad
-        this.activity = updatedActivity;
-        store.setCurrentActivity(updatedActivity);
+        // NOTA: SearchService.getActivityById() ya se encarga de:
+        // - Llamar a SolrGateway.searchDetail()
+        // - Enriquecer con datos del centro
+        // Por lo que recibimos la actividad lista para usar
+        const filters = {
+          searchType: 'detail',
+          center: [this.centerId],
+          activity: [this.activityId]
+        };
 
-        // Actualizar solo las sesiones en la UI
-        await this.#updateSessionsDisplay(container);
-      } else {
-        console.log('[DetailComponent] Backend devolvió data sin sesiones', {
-          activityId: this.activityId
+        const activity = await SearchService.getActivityById(filters, 0, -1);
+
+        if (!activity) {
+          console.warn('[DetailComponent] Backend no devolvió actividad', {
+            activityId: this.activityId,
+            centerId: this.centerId
+          });
+          return null;
+        }
+
+        console.log('[DetailComponent] Actividad obtenida correctamente', {
+          activityId: this.activityId,
+          title: activity.name,
+          centerName: activity.centerName,
+          sessionsCount: activity.sessions?.length || 0
         });
+
+        return activity;
+
+      } catch (error) {
+        console.error('[DetailComponent] Error obteniendo actividad del backend:', {
+          activityId: this.activityId,
+          centerId: this.centerId,
+          error: error.message
+        });
+        return null;
       }
-
-      // Ocultar indicador
-      this.#hideLoadingIndicator(container);
-
-    } catch (error) {
-      console.error('[DetailComponent] Error en fetch del backend:', {
-        activityId: this.activityId,
-        error: error.message
-      });
-
-      // Si backend falla, mantener datos cacheados (no mostrar error)
-      this.#hideLoadingIndicator(container);
-
-    } finally {
-      this.isUpdatingFromBackend = false;
     }
-  }
-
-  /**
-   * Muestra un indicador visual de "actualizando".
-   * @private
-   * @param {HTMLElement} container - Contenedor del componente
-   */
-  #showLoadingIndicator(container) {
-    // No mostrar si ya existe
-    if (container.querySelector('.updating-indicator')) {
-      return;
-    }
-
-    const indicator = document.createElement('div');
-    indicator.className = 'updating-indicator';
-    indicator.innerHTML = `
-      <span class="updating-spinner">↻</span>
-      <span class="updating-text">Actualizando sesiones...</span>
-    `;
-
-    // Agregar después del header
-    const header = container.querySelector('.detail-header');
-    if (header) {
-      header.insertAdjacentElement('afterend', indicator);
-    } else {
-      container.insertBefore(indicator, container.firstChild);
-    }
-  }
-
-   /**
-    * Oculta el indicador visual de "actualizando".
-    * @private
-    * @param {HTMLElement} container - Contenedor del componente
-    */
-   #hideLoadingIndicator(container) {
-     const indicator = container.querySelector('.updating-indicator');
-     if (indicator) {
-       // Transición suave de salida
-       indicator.style.opacity = '0';
-       indicator.style.transition = 'opacity 0.3s ease-out';
-       
-       setTimeout(() => {
-         if (indicator.parentElement) {
-           indicator.remove();
-         }
-       }, 300);
-     }
-   }
-
-   /**
-    * Muestra un indicador visual de "cargando actividad" cuando no está en cache.
-    * Se muestra mientras se intenta cargar del backend.
-    * 
-    * @private
-    * @param {HTMLElement} container - Contenedor del componente
-    */
-   #showInitialLoadingIndicator(container) {
+    
+    /**
+     * Muestra un indicador visual de "cargando actividad".
+     * Se muestra mientras se intenta cargar del backend en el flujo Backend-First.
+     * 
+     * @private
+     * @param {HTMLElement} container - Contenedor del componente
+     */
+    #showInitialLoadingIndicator(container) {
      // No mostrar si ya existe
      if (container.querySelector('.initial-loading-indicator')) {
        return;
@@ -600,55 +332,5 @@ export class DetailComponent {
      }
    }
 
-  /**
-   * Actualiza el grid de sesiones sin re-renderizar todo el componente.
-   * Reemplaza solo el ScheduleGrid con las nuevas sesiones.
-   * 
-   * @private
-   * @param {HTMLElement} container - Contenedor del componente
-   */
-  async #updateSessionsDisplay(container) {
-    try {
-      // Buscar el grid de horarios actual
-      const oldScheduleGrid = container.querySelector('.schedule-grid');
-      
-      if (!oldScheduleGrid) {
-        console.log('[DetailComponent] No hay grid de sesiones para actualizar');
-        return;
-      }
 
-      // Crear nuevo grid con sesiones actualizadas
-      if (this.activity.sessions && this.activity.sessions.length > 0) {
-        const scheduleComponent = new ScheduleGridComponent(
-          this.activity.sessions,
-          (session) => this.#handleSessionClick(session)
-        );
-        const newScheduleGrid = scheduleComponent.render();
-
-        // Reemplazar con transición suave
-        oldScheduleGrid.style.opacity = '0';
-        oldScheduleGrid.style.transition = 'opacity 0.2s ease-out';
-
-        setTimeout(() => {
-          oldScheduleGrid.replaceWith(newScheduleGrid);
-          
-          // Fade-in del nuevo grid
-          newScheduleGrid.style.opacity = '0';
-          newScheduleGrid.style.transition = 'opacity 0.3s ease-in';
-          
-          // Trigger reflow para aplicar transición
-          void newScheduleGrid.offsetHeight;
-          newScheduleGrid.style.opacity = '1';
-        }, 200);
-
-        console.log('[DetailComponent] Grid de sesiones actualizado', {
-          sessionsCount: this.activity.sessions.length
-        });
-      }
-
-    } catch (error) {
-      console.error('[DetailComponent] Error actualizando grid de sesiones:', error);
-      // No lanzar error, mantener UI como está
-    }
-  }
 }

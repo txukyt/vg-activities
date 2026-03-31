@@ -76,17 +76,13 @@ export class SelectedFiltersBar {
        chipsContainer.appendChild(chip);
      });
 
-     this.element.appendChild(chipsContainer);
+    this.element.appendChild(chipsContainer);
 
-     // Botón limpiar todos: SOLO si hay filtros no-fijos
-     const hasNonFixedFilters = this.#hasNonFixedFilters();
-     if (hasNonFixedFilters) {
-       const clearAllBtn = document.createElement('button');
-       clearAllBtn.className = 'clear-all-filters-btn';
-       clearAllBtn.textContent = 'Limpiar todo';
-       clearAllBtn.addEventListener('click', () => this.#clearAllFilters());
-       this.element.appendChild(clearAllBtn);
-     }
+     const clearAllBtn = document.createElement('button');
+     clearAllBtn.className = 'clear-all-filters-btn';
+     clearAllBtn.textContent = 'Limpiar todo';
+     clearAllBtn.addEventListener('click', () => this.#clearAllFilters());
+     this.element.appendChild(clearAllBtn);
    }
 
   /**
@@ -190,110 +186,28 @@ export class SelectedFiltersBar {
    */
   #createChip(filter) {
     const state = store.getState();
-    const isFixedCenter = state.fixedCenterFilterFromRoute && filter.type === 'center' && filter.value === state.fixedCenterFilterFromRoute;
-    const isFixedActivity = state.fixedActivityFilterFromRoute && filter.type === 'activity' && filter.value === state.fixedActivityFilterFromRoute;
-    const isFixedProgram = state.fixedProgramFilterFromRoute && filter.type === 'program' && filter.value === state.fixedProgramFilterFromRoute;
-    const isFixed = isFixedCenter || isFixedActivity || isFixedProgram;
     
     const chip = document.createElement('div');
     chip.className = 'selected-filter-chip';
     chip.setAttribute('data-filter-type', filter.type);
     chip.setAttribute('data-filter-value', filter.value);
-    
-    // Añadir clase si es fijo
-    if (isFixed) {
-      chip.classList.add('chip-fixed');
-    }
 
     const label = document.createElement('span');
     label.className = 'chip-text';
     label.textContent = filter.label;
-    label.title = isFixed
-      ? `${filter.typeLabel}: ${filter.label} (obligatorio)`
-      : `${filter.typeLabel}: ${filter.label}`;
+    label.title = `${filter.typeLabel}: ${filter.label}`;
 
     chip.appendChild(label);
     
-    // Mostrar botón × SOLO si NO es un filtro fijo
-    if (!isFixed) {
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'chip-remove-btn';
-      removeBtn.innerHTML = '×';
-      removeBtn.setAttribute('aria-label', `Eliminar filtro ${filter.label}`);
-      removeBtn.addEventListener('click', () => this.#removeFilter(filter));
-      chip.appendChild(removeBtn);
-    }
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'chip-remove-btn';
+    removeBtn.innerHTML = '×';
+    removeBtn.setAttribute('aria-label', `Eliminar filtro ${filter.label}`);
+    removeBtn.addEventListener('click', () => this.#removeFilter(filter));
+    chip.appendChild(removeBtn);
 
     return chip;
   }
-
-   /**
-    * Verifica si hay filtros no-fijos seleccionados.
-    * @private
-    */
-   #hasNonFixedFilters() {
-     const state = store.getState();
-     const fixedActivityId = state.fixedActivityFilterFromRoute;
-     const fixedCenterId = state.fixedCenterFilterFromRoute;
-     const fixedProgramId = state.fixedProgramFilterFromRoute;
-     const filters = state.filters;
-
-     // Verificar dayOfWeek
-     if (filters.dayOfWeek && filters.dayOfWeek.length > 0) {
-       return true;
-     }
-
-     // Verificar timeSlot
-     if (filters.timeSlot && filters.timeSlot.length > 0) {
-       return true;
-     }
-
-     // Verificar language
-     if (filters.language && filters.language.length > 0) {
-       return true;
-     }
-
-     // Verificar center (comparar con fijo)
-     if (filters.center && filters.center.length > 0) {
-       if (fixedCenterId) {
-         // Si hay filtro fijo de centro, solo es no-fijo si hay más centros seleccionados
-         if (filters.center.length > 1 || filters.center[0] !== fixedCenterId) {
-           return true;
-         }
-       } else {
-         // Si no hay filtro fijo, cualquier centro seleccionado es no-fijo
-         return true;
-       }
-     }
-
-     // Verificar activity (comparar con fijo)
-     if (filters.activity && filters.activity.length > 0) {
-       if (fixedActivityId) {
-         // Si hay filtro fijo de actividad, solo es no-fijo si hay más actividades seleccionadas
-         if (filters.activity.length > 1 || filters.activity[0] !== fixedActivityId) {
-           return true;
-         }
-       } else {
-         // Si no hay filtro fijo, cualquier actividad seleccionada es no-fija
-         return true;
-       }
-     }
-
-     // Verificar program (comparar con fijo)
-     if (filters.program && filters.program.length > 0) {
-       if (fixedProgramId) {
-         // Si hay filtro fijo de programa, solo es no-fijo si hay más programas seleccionados
-         if (filters.program.length > 1 || filters.program[0] !== fixedProgramId) {
-           return true;
-         }
-       } else {
-         // Si no hay filtro fijo, cualquier programa seleccionado es no-fijo
-         return true;
-       }
-     }
-
-     return false;
-   }
 
    /**
     * Elimina un filtro específico.
@@ -316,14 +230,11 @@ export class SelectedFiltersBar {
     */
    #clearAllFilters() {
      const state = store.getState();
-     const fixedActivityId = state.fixedActivityFilterFromRoute;
-     const fixedCenterId = state.fixedCenterFilterFromRoute;
-     const fixedProgramId = state.fixedProgramFilterFromRoute;
      
      store.setFilters({
-       center: fixedCenterId ? [fixedCenterId] : [],
-       activity: fixedActivityId ? [fixedActivityId] : [],
-       program: fixedProgramId ? [fixedProgramId] : [],
+       center: [],
+       activity: [],
+       program: [],
        dayOfWeek: [],
        timeSlot: [],
        language: [],

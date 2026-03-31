@@ -54,25 +54,11 @@ export class SearchService {
       const facets = FacetsService.parseFacetsFromBackend(solrResponse);
       const results = this.#extractResults(solrResponse);
 
-      const enrichedSessions = this.#transformResults(results);
-
-        console.log('[SearchService] Sesiones enriquecidas', {
-          totalSessions: enrichedSessions.length
-        });
-
-        // PASO 5: REGLA DE NEGOCIO CRÍTICA: Agrupar por Centro → Actividad → Sesiones (SIEMPRE)
-       const groupedData = this.#groupByCenter(enrichedSessions);
-
-       console.log('[SearchService] Datos agrupados por centro', {
-         totalCenters: groupedData.length,
-         centerNames: groupedData.map(g => g.center.name)
-       });
-
        // Calcular si hay más resultados
        const hasMore = offset + limit < totalCount;
        
        console.log('[SearchService] Resultado de búsqueda finalizado', {
-         totalCenters: groupedData.length,
+         totalCenters: results.length,
          totalItems: totalCount,
          hasMore,
          offset,
@@ -83,7 +69,7 @@ export class SearchService {
 
        // Retornar siempre estructura agrupada (aunque esté vacía)
        return {
-         data: groupedData,
+         data: results,
          totalItems: totalCount,
          hasMore: hasMore,
          offset,
@@ -109,56 +95,6 @@ export class SearchService {
      return solrResponse.results || [];
    }
 
-   /**
-    * Enriquece una sesión mínima agregando nombres desde el store.
-    * Busca el nombre del centro y título de la actividad.
-    * 
-    * @param {Object} session - Sesión con estructura mínima (IDs)
-    * @returns {Object} Sesión enriquecida con centerName y activityName
-    * @private
-    */
-   static #enrichSessionData(session) {
-     try {
-       const centers = store.getCenters();
-       const activities = store.getActivities();
-
-       // Buscar centro y actividad por ID
-       const center = centers.find(c => Number(c.id) === session.center.id);
-       const activity = activities.find(a => a.id === session.activity.id);
-
-       // Si no existen, registrar warning pero retornar sesión sin enriquecer
-       if (!center || !activity) {
-         console.warn('[SearchService] Centro o actividad no encontrados al enriquecer sesión', {
-           sessionId: session.id,
-           centerId: session.center.id,
-           activityId: session.activity.id,
-           centerFound: !!center,
-           activityFound: !!activity
-         });
-         return session; // Retornar original
-       }
-
-       // Enriquecer con nombres
-       return {
-         ...session,
-         center: {
-          ...session.center,
-          name: center.name 
-        },
-         activity: {
-          ...session.activity,
-          name: activity.name 
-        }
-       };
-     } catch (error) {
-       console.error('[SearchService] Error enriqueciendo sesión', {
-         sessionId: session.sessionId,
-         error: error.message
-       });
-       return session; // Retornar original en caso de error
-     }
-   }
-
   /**
    * Extrae el total de items de la respuesta SOLR.
    * @private
@@ -168,171 +104,65 @@ export class SearchService {
   }
 
    /**
-    * Transforma los resultados recibidos del backend al formato esperado.
-    * Si son sesiones mínimas (solo IDs), enriquece con nombres desde el store.
-    * Si son estructura plana ya enriquecida, mantiene como está.
-    * Si son anidados (cada item es una actividad con sesiones), expande si es necesario.
-    * @private
+    * Obtiene una actividad específica por su ID desde el backend SOLR.
+    * Backend-First Strategy: Consulta el backend para obtener la actividad completa
+    * con todas sus sesiones, agrupadas por día.
+    *
+    * FLUJO:
+    * 1. Llamar a SolrGateway.searchDetail() con activityId y centerId
+    * 2. Procesar respuesta del backend: { results, totalCount }
+    * 3. Extraer primera actividad del array results
+    * 4. Agrupar sesiones por día de la semana
+    * 5. Enriquecer con información del centro
+    * 6. Retornar actividad enriquecida con sesiones agrupadas
+    *
+    * @param {string} activityId - ID de la actividad
+    * @param {string} centerId - ID del centro
+    * @returns {Promise<Object|null>} Actividad enriquecida con sessionsByDay
     */
-   static #transformResults(results) {
-    if (results.length === 0) return [];
+   static async getActivityById(newFilters = {}, offset = 0, limit = 10) {
+     try {
 
-     
-    return results.map((session, index) => {
-      const enriched = this.#enrichSessionData(session);
-      if (index === 0) {
-        console.log('[SearchService] Sesión enriquecida (muestra):', {
-          original: { sessionId: session.id, activityId: session.activity.id, centerId: session.center.id },
-          enriched: { centerName: enriched.center.name, activityName: enriched.activity.name }
-        });
-      }
-      return enriched;
-    });
-   }
+        const state = store.getState();
+      const filters = state.filters;
 
-   /**
-    * Agrupa sesiones por Centro y luego por Actividad.
-    * Estructura jerárquica: Centro → Actividades → Sesiones
-    * @private
-    */
-   static #groupByCenter(sessions) {
-     console.log('[SearchService] Iniciando agrupación por centro y actividad', {
-       totalSessions: sessions.length,
-       sampleSession: sessions.length > 0 ? {
-         id: sessions[0].id,
-         centerId: sessions[0].center.id,
-         activityId: sessions[0].activity.id,
-         hasEnrichedNames: !!sessions[0].center.name && !!sessions[0].activity.name
-       } : null
-     });
+      // PASO 1: Consultar backend SOLR para obtener la actividad
+      const response = await SolrGateway.searchDetail({
+        ...filters,
+        ...newFilters },
+        offset,
+        limit);
 
-     // Detectar si es formato plano (con sessionId)
-     const isFlatFormat = sessions.length > 0 && sessions[0].sessionId !== undefined;
+       if (!response || !response.results || response.results.length === 0) {
+         console.warn('[SearchService] Backend no devolvió actividad', {
+           responseStructure: response ? Object.keys(response) : 'null'
+         });
+         return null;
+       }
 
-     console.log('[SearchService] Formato detectado:', isFlatFormat ? 'PLANO (SESIONES)' : 'ANIDADO (ACTIVIDADES)');
+       // PASO 2: Extraer la actividad del array results
+       // El backend retorna { results: [...], totalCount: n }
+       // Cada elemento en results es una actividad con sus sesiones
+       const rawActivity = response.results;
 
-     const centerMap = new Map();
+       if (!rawActivity) {
+         console.warn('[SearchService] Primer resultado vacío', {
+         });
+         return null;
+       }
 
-     if (isFlatFormat) {
-       // ===== FORMATO PLANO: Cada item es una sesión individual =====
-       // Jerarquía: Centro → Actividad → Sesiones
-
-       sessions.forEach(session => {
-         // Saltar sesiones sin plazas disponibles (si aplica)
-         if (session.hasAvailableSpots !== undefined && session.hasAvailableSpots === false) {
-           return;
-         }
-
-         const { centerId, centerName, activityId, activityName } = session;
-
-         // PASO 1: Asegurar estructura de Centro
-         if (!centerMap.has(centerId)) {
-           centerMap.set(centerId, {
-             center: {
-               id: centerId,
-               name: centerName
-             },
-             activitiesMap: new Map() // Mapa temporal para agrupar actividades
-           });
-         }
-
-         const centerGroup = centerMap.get(centerId);
-
-         // PASO 2: Asegurar estructura de Actividad dentro del Centro
-         if (!centerGroup.activitiesMap.has(activityId)) {
-           centerGroup.activitiesMap.set(activityId, {
-             id: activityId,
-             title: activityName,
-             centerName: centerName,  // Preservar nombre del centro
-             description: session.description || '',  // Preservar descripción
-             sessions: []
-           });
-         }
-
-         // PASO 3: Agregar Sesión a la Actividad
-         const activity = centerGroup.activitiesMap.get(activityId);
-         activity.sessions.push(session);
+       console.log('[SearchService] Actividad obtenida del backend', {
+         name: rawActivity.name,
+         sessionsCount: rawActivity.sessions?.length || 0
        });
 
-       // PASO 4: Convertir Maps a Arrays
-       Array.from(centerMap.values()).forEach(centerGroup => {
-         centerGroup.activities = Array.from(centerGroup.activitiesMap.values());
-         delete centerGroup.activitiesMap; // Limpiar mapa temporal
+       return rawActivity;
+
+     } catch (error) {
+       console.error('[SearchService] Error obteniendo actividad del backend:', {
+         error: error.message
        });
-     } else {
-       // ===== FORMATO ANIDADO O GENÉRICO =====
-       // Si las sesiones ya vienen como estructura anidada, procesarlas diferentemente
-       sessions.forEach(item => {
-
-        const { center, activity } = item;
-
-         if (!centerMap.has(center.id)) {
-           centerMap.set(center.id, {
-             center: {
-               id: center.id,
-               name: center.name
-             },
-             activitiesMap: new Map() 
-           });
-         }
-
-         const centerAux = centerMap.get(center.id);
-
-         if (!centerAux.activitiesMap.has(activity.id)) {
-           centerAux.activitiesMap.set(activity.id, {
-             id: activity.id,
-             name: activity.name,
-             description: activity.description,
-             sessions: []
-           });
-         }
-
-         const activityAux = centerAux.activitiesMap.get(activity.id);
-
-         activityAux.sessions.push(item);      
-         
-        });
-        Array.from(centerMap.values()).forEach(centerGroup => {
-          centerGroup.activities = Array.from(centerGroup.activitiesMap.values());
-          delete centerGroup.activitiesMap; // Limpiar mapa temporal
-        });
+       return null;
      }
-
-      // PASO 5: Convertir Map a Array y ordenar
-      const result = Array.from(centerMap.values());
-
-
-     return result;
    }
-
-  /**
-   * Obtiene una actividad específica por su ID desde el store.
-   * NOTA: Por ahora usa el store. Cuando el backend exponga un endpoint
-   * /m01-10s/api/activity/{id}, adaptar para consultar allí.
-   * 
-   * @param {number} id - ID de la actividad
-   * @returns {Promise<Object|null>} Actividad o null si no existe
-   */
-  static async getActivityById(id) {
-    try {
-      console.log('[SearchService] Obteniendo actividad por ID', { id });
-
-      // Por ahora, obtener del store (datos ya cargados)
-      const activities = store.getActivities();
-      const numId = typeof id === 'string' ? parseInt(id, 10) : id;
-      const activity = activities.find(a => a.id === numId);
-
-      console.log('[SearchService] Actividad encontrada:', {
-        id,
-        found: !!activity
-      });
-
-      return activity || null;
-    } catch (error) {
-      console.error('[SearchService] Error obteniendo actividad:', {
-        error: error.message
-      });
-      throw error;
-    }
-  }
 }

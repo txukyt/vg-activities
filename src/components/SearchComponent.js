@@ -23,6 +23,7 @@ export class SearchComponent {
       this.loadMoreButton = null;  // Botón "Ver más"
       this.previousFiltersJson = null;   // JSON string anterior para comparar
       this.lastPerformedSearch = null;   // Rastrear última búsqueda para evitar duplicados
+      this.renderedActivityIds = new Set();  // IDs de actividades ya renderizadas en el DOM
     }
     
     /**
@@ -209,24 +210,25 @@ export class SearchComponent {
         return;
       }
 
-      // Detectar si cambió el filtro
-      const filtersChanged = this.previousFiltersJson &&
-        this.previousFiltersJson !== currentFiltersJson;
+        // Detectar si cambió el filtro
+        const filtersChanged = this.previousFiltersJson &&
+          this.previousFiltersJson !== currentFiltersJson;
 
-      if (filtersChanged) {
-        console.log('[SearchComponent] Filtros cambiaron, reseteando offset a 0');
-        // Filtros cambiaron: nueva búsqueda desde offset 0
-        isLoadingMore = false;
-        //store.setPaginationOffset(0);
-      }
+        if (filtersChanged) {
+          console.log('[SearchComponent] Filtros cambiaron, reseteando offset a 0');
+          // Filtros cambiaron: nueva búsqueda desde offset 0
+          isLoadingMore = false;
+          this.renderedActivityIds.clear();  // Resetear actividades renderizadas para nueva búsqueda
+          //store.setPaginationOffset(0);
+        }
 
-      /*if (!isLoadingMore) {
+      if (!isLoadingMore) {
         // Nueva búsqueda: marcar que cargando
         store.setLoading(true);
       } else {
         // Infinite scroll: marcar que cargando más
         store.setIsLoadingMore(true);
-      } */
+      }
 
       const result = await SearchService.search(
         filters,
@@ -244,7 +246,7 @@ export class SearchComponent {
         
         // Agregar centros existentes
         existingResults.forEach(centerGroup => {
-          centerMap.set(centerGroup.center.id, {
+          centerMap.set(centerGroup.id, {
             center: centerGroup.center,
             activities: [...centerGroup.activities]
           });
@@ -252,7 +254,7 @@ export class SearchComponent {
         
         // Agregar nuevos centros / actividades
         newResults.forEach(newCenterGroup => {
-          const centerId = newCenterGroup.center.id;
+          const centerId = newCenterGroup.id;
           if (centerMap.has(centerId)) {
             // Centro existe: agregar actividades nuevas
             const existingGroup = centerMap.get(centerId);
@@ -285,7 +287,7 @@ export class SearchComponent {
             limit: result.limit,
             totalItems: result.totalItems,
             hasMore: result.hasMore,
-            isLoadingMore: false
+            isLoadingMore: true
           }
         });
       } else {
@@ -323,103 +325,167 @@ export class SearchComponent {
     }
   }
 
-  /**
-   * Actualiza los resultados cuando cambia el estado.
-   * Implementa infinite scroll con Intersection Observer.
-   * @private
-   */
-  #updateResults() {
-    const state = store.getState();
-    const resultsWrapper = document.getElementById('results-wrapper');
+    /**
+     * Actualiza los resultados cuando cambia el estado.
+     * Implementa carga incremental: en la primera búsqueda limpia todo.
+     * En cargas posteriores (Ver más), solo agrega nuevas actividades.
+     * @private
+     */
+    #updateResults() {
+      const state = store.getState();
+      const resultsWrapper = document.getElementById('results-wrapper');
 
-    console.log('[SearchComponent] #updateResults DISPARADO. loading:', state.loading, 'results:', state.results.length, 'hasMore:', state.pagination.hasMore);
+      console.log('[SearchComponent] #updateResults DISPARADO. loading:', state.loading, 'results:', state.results.length, 'hasMore:', state.pagination.hasMore, 'renderedActivities:', this.renderedActivityIds.size);
 
-    // Actualizar filtros de Centro y Actividad en el panel de filtros
-    if (this.filterPanel) {
-      this.filterPanel.updateFormFacets();
-    }
+      // Actualizar filtros de Centro y Actividad en el panel de filtros
+      if (this.filterPanel) {
+        this.filterPanel.updateFormFacets();
+      }
 
-    // Actualizar barra de filtros seleccionados
-    if (this.selectedFiltersBar) {
-      this.selectedFiltersBar.update();
-    }
+      // Actualizar barra de filtros seleccionados
+      if (this.selectedFiltersBar) {
+        this.selectedFiltersBar.update();
+      }
 
-    // Actualizar visibilidad del drawer
-    this.#updateFiltersDrawerVisibility();
+      // Actualizar visibilidad del drawer
+      this.#updateFiltersDrawerVisibility();
 
-    if (!resultsWrapper) {
-      console.warn('[SearchComponent] ⚠️ results-wrapper no encontrado en el DOM');
-      return;
-    }
+      if (!resultsWrapper) {
+        console.warn('[SearchComponent] ⚠️ results-wrapper no encontrado en el DOM');
+        return;
+      }
 
-    // Limpiar contenido previo
-    resultsWrapper.innerHTML = '';
+      // DETECTAR SI ES NUEVA BÚSQUEDA O CARGA INCREMENTAL
+      const isIncrementalLoad = this.renderedActivityIds.size > 0 && state.pagination.isLoadingMore;
 
-    if (state.loading && state.results.length === 0) {
-      // Primera búsqueda cargando
-      resultsWrapper.innerHTML = `
-        <div class="loading">
-          <p>Cargando resultados...</p>
-        </div>
-      `;
-      return;
-    }
+      if (!isIncrementalLoad) {
+        // NUEVA BÚSQUEDA: Limpiar todo el contenido
+        resultsWrapper.innerHTML = '';
+        this.renderedActivityIds.clear();
+      }
+      // Si es carga incremental, NO limpiar el wrapper, solo agregar después
 
-    if (state.error && state.results.length === 0) {
-      // Error en búsqueda sin resultados previos
-      resultsWrapper.innerHTML = `
-        <div class="error">
-          <p>${this.#escapeHtml(state.error)}</p>
-        </div>
-      `;
-      return;
-    }
+      if (state.loading && state.results.length === 0) {
+        // Primera búsqueda cargando
+        resultsWrapper.innerHTML = `
+          <div class="loading">
+            <p>Cargando resultados...</p>
+          </div>
+        `;
+        return;
+      }
 
-    if (state.results.length === 0) {
-      // Sin resultados (búsqueda completada sin errores)
-      resultsWrapper.innerHTML = `
-        <div class="no-results">
-          <p>No se encontraron resultados para tu búsqueda</p>
-        </div>
-      `;
-      return;
-    }
+      if (state.error && state.results.length === 0) {
+        // Error en búsqueda sin resultados previos
+        resultsWrapper.innerHTML = `
+          <div class="error">
+            <p>${this.#escapeHtml(state.error)}</p>
+          </div>
+        `;
+        return;
+      }
 
-    // CASO: Tenemos resultados
-    console.log('[SearchComponent] Renderizando', state.results.length, 'centros. hasMore:', state.pagination.hasMore);
-    
-    // Renderizar resultados
-    const resultsElement = ResultsRenderer.render(
-      state.results,
-      (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
-    );
-    resultsWrapper.appendChild(resultsElement);
+      if (state.results.length === 0) {
+        // Sin resultados (búsqueda completada sin errores)
+        resultsWrapper.innerHTML = `
+          <div class="no-results">
+            <p>No se encontraron resultados para tu búsqueda</p>
+          </div>
+        `;
+        return;
+      }
 
-    // Indicador de carga para infinite scroll
-    if (state.pagination.isLoadingMore) {
-      const loadingIndicator = document.createElement('div');
-      loadingIndicator.className = 'loading-more';
-      loadingIndicator.innerHTML = '<p>Cargando más resultados...</p>';
-      resultsWrapper.appendChild(loadingIndicator);
-    }
+      // CASO: Tenemos resultados
+      console.log('[SearchComponent] Renderizando', state.results.length, 'centros. hasMore:', state.pagination.hasMore);
+      
+      if (isIncrementalLoad) {
+        // CARGA INCREMENTAL: Solo agregar nuevas actividades (en centros existentes o nuevos)
+        console.log('[SearchComponent] 📥 Carga incremental: agregando solo actividades nuevas');
+        
+        // Limpiar indicador anterior de "cargando más" si existe
+        const oldLoadingIndicator = resultsWrapper.querySelector('.loading-more');
+        if (oldLoadingIndicator) {
+          oldLoadingIndicator.remove();
+        }
+        
+        // Obtener elemento section (results-container)
+        let resultsContainer = resultsWrapper.querySelector('.results-container');
+        
+        if (!resultsContainer) {
+          // Si no existe, crear uno
+          resultsContainer = document.createElement('section');
+          resultsContainer.className = 'results-container';
+          resultsWrapper.appendChild(resultsContainer);
+        }
+        
+        // Agregar solo las nuevas actividades (en centros existentes o nuevos)
+        ResultsRenderer.renderAdditionalGroups(
+          resultsContainer,
+          state.results,
+          this.renderedActivityIds,
+          (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
+        );
+      } else {
+        // PRIMERA BÚSQUEDA: Renderizar todo desde cero
+        const resultsElement = ResultsRenderer.render(
+          state.results,
+          (activityId, centerId) => this.#handleActivityClick(activityId, centerId)
+        );
+        resultsWrapper.appendChild(resultsElement);
+      }
 
-    // Botón "Ver más" si hay más resultados disponibles
-    // CRÍTICO: Verificar AMBAS condiciones: hasMore = true y NO está cargando
-    if (state.pagination.hasMore === true && state.pagination.isLoadingMore === false) {
-      console.log('[SearchComponent] ✓ Agregando botón "Ver más". offset:', state.pagination.offset, 'total:', state.pagination.totalItems);
-      const loadMoreButton = document.createElement('button');
-      loadMoreButton.className = 'btn-load-more';
-      loadMoreButton.textContent = 'Ver más';
-      loadMoreButton.addEventListener('click', async () => {
-        console.log('[SearchComponent] Usuario hizo click en "Ver más"');
-        await this.#performSearch(true); // true = cargar más resultados
+      // Actualizar registro de actividades renderizadas
+      state.results.forEach(group => {
+        group.activities.forEach(activity => {
+          this.renderedActivityIds.add(activity.id);
+        });
       });
-      resultsWrapper.appendChild(loadMoreButton);
-      this.loadMoreButton = loadMoreButton;
-    } else if (state.results.length > 0) {
-      console.log('[SearchComponent] ⚠️ NO se muestra botón "Ver más". hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
+
+      // Limpiar indicador anterior de "cargando más" si existe (por si ha terminado la carga)
+      const oldLoadingIndicator = resultsWrapper.querySelector('.loading-more');
+      if (oldLoadingIndicator && !state.pagination.isLoadingMore) {
+        oldLoadingIndicator.remove();
+      }
+
+      // Indicador de carga para infinite scroll
+      if (state.pagination.isLoadingMore) {
+        // Solo agregar si no existe ya
+        if (!resultsWrapper.querySelector('.loading-more')) {
+          const loadingIndicator = document.createElement('div');
+          loadingIndicator.className = 'loading-more';
+          loadingIndicator.innerHTML = '<p>Cargando más resultados...</p>';
+          resultsWrapper.appendChild(loadingIndicator);
+        }
+      }
+
+      // Botón "Ver más" si hay más resultados disponibles
+      // CRÍTICO: Verificar AMBAS condiciones: hasMore = true y NO está cargando
+      if (state.pagination.hasMore === true ) {
+        console.log('[SearchComponent] ✓ Agregando botón "Ver más". offset:', state.pagination.offset, 'total:', state.pagination.totalItems);
+        
+        // Remover botón anterior si existe
+        if (this.loadMoreButton) {
+          this.loadMoreButton.remove();
+        }
+        
+        const loadMoreButton = document.createElement('button');
+        loadMoreButton.className = 'btn-load-more';
+        loadMoreButton.textContent = 'Ver más';
+        loadMoreButton.addEventListener('click', async () => {
+          console.log('[SearchComponent] Usuario hizo click en "Ver más"');
+          await this.#performSearch(true); // true = cargar más resultados
+        });
+        resultsWrapper.appendChild(loadMoreButton);
+        this.loadMoreButton = loadMoreButton;
+      } else if (state.results.length > 0) {
+        console.log('[SearchComponent] ⚠️ NO se muestra botón "Ver más". hasMore:', state.pagination.hasMore, 'isLoadingMore:', state.pagination.isLoadingMore);
+        // Remover botón si existe y no hay más resultados
+        if (this.loadMoreButton) {
+          this.loadMoreButton.remove();
+          this.loadMoreButton = null;
+        }
+      }
     }
-  }
 
 
   /**

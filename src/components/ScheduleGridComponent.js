@@ -3,6 +3,7 @@
  * Componente para mostrar un grid de horarios agrupados por fecha y franja horaria.
  */
 
+import { store } from '../store.js';
 import { ScheduleService } from '../services/ScheduleService.js';
 
 export class ScheduleGridComponent {
@@ -237,10 +238,19 @@ export class ScheduleGridComponent {
 
   /**
    * Maneja el clic en el botón de ver detalles.
+   * Guarda la sesión en el store para optimizar carga posterior.
    * @private
    * @param {Object} session - Sesión seleccionada
    */
   #handleSessionClick(session) {
+    // Guardar sesión en store para utilizarla en SessionDetailComponent
+    store.setCurrentSession(session);
+    
+    console.log('[ScheduleGridComponent] Sesión guardada en store', {
+      sessionId: session.id,
+      cached: true
+    });
+    
     if (this.onSessionClick) {
       this.onSessionClick(session);
     }

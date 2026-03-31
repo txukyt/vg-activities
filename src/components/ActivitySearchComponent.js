@@ -13,26 +13,19 @@ import { store } from '../store.js';
 export class ActivitySearchComponent extends SearchComponent {
   constructor(router = null, params = {}) {
     super(router, params);
-    this.fixedActivityId = params.activityId || null;
-    this.isFixedActivity = true;  // Marcar filtro como fijo
+    this.activityId = params.activityId || null;
   }
 
   async render() {
-    // Pre-aplicar filtro de actividad fijo antes de renderizar
-    // Los filtros de center/activity son arrays en el store
-    if (this.fixedActivityId) {
-      // Hacer ambos cambios en una sola actualización para consistencia
-      const currentFilters = store.getState().filters;
-      store.setState({
-        filters: {
-          ...currentFilters,
-          activity: [this.fixedActivityId]
-        },
-        fixedActivityFilterFromRoute: this.fixedActivityId
-      });
-    }
-    
-    // Renderizar SearchComponent normalmente
+
+    const currentFilters = store.getState().filters;
+    store.setState({
+      filters: {
+        ...currentFilters,
+        activity: [this.activityId]
+      },
+    });
+
     return super.render();
   }
 }

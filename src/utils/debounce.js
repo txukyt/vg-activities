@@ -26,33 +26,4 @@ export function debounce(func, delay = 500) {
   };
 }
 
-/**
- * Crea una versión debounceada de una función con posibilidad de cancelar
- * Retorna un objeto con la función debounceada y un método para cancelar
- * @param {Function} func - Función a debuncear
- * @param {number} delay - Tiempo de espera en ms (default: 500ms)
- * @returns {Object} Objeto con propiedades: fn (función debounceada) y cancel (para cancelar el timeout)
- */
-export function debounceWithCancel(func, delay = 500) {
-  let timeoutId;
 
-  const debounced = function (...args) {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-
-    timeoutId = setTimeout(() => {
-      func.apply(this, args);
-      timeoutId = null;
-    }, delay);
-  };
-
-  debounced.cancel = function () {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutId = null;
-    }
-  };
-
-  return debounced;
-}

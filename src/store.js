@@ -14,18 +14,17 @@ class Store {
           loading: false,
           error: null,
           currentActivity: null,
+          currentSession: null,      // Sesión seleccionada actualmente
           scrollPosition: 0,
           centers: [],
           activities: [],
           programs: [],
           filtersDrawerOpen: false,  // Control de visibilidad del drawer de filtros en móvil
           facets: null,              // Facetas del último resultado de búsqueda
-          fixedActivityFilterFromRoute: null,  // ID de actividad fija desde URL /activity/:id
-          fixedCenterFilterFromRoute: null,    // ID de centro fijo desde URL /center/:id
-          fixedProgramFilterFromRoute: null,    // ID de programa fijo desde URL /program/:id
+
           pagination: {
             offset: 0,                // Número de items saltados
-            limit: 50,               // Items por request (SOLR limit)
+            limit: 10,               // Items por request (SOLR limit)
             totalItems: 0,            // Total descubierto
             hasMore: true,            // ¿Hay más resultados?
             isLoadingMore: false      // ¿Cargando más resultados?
@@ -107,6 +106,22 @@ class Store {
    */
   setCurrentActivity(activity) {
     this.setState({ currentActivity: activity });
+  }
+
+  /**
+   * Establece la sesión actual (cuando se selecciona una sesión).
+   * @param {Object|null} session - Sesión o null
+   */
+  setCurrentSession(session) {
+    this.setState({ currentSession: session });
+  }
+
+  /**
+   * Obtiene la sesión actual.
+   * @returns {Object|null} Sesión actual o null
+   */
+  getCurrentSession() {
+    return this.state.currentSession;
   }
 
   /**

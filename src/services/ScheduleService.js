@@ -14,66 +14,7 @@ export class ScheduleService {
     noche: { label: 'Noche', start: 20, end: 6 } // Cruza medianoche
   };
 
-  /**
-   * Agrupa sesiones por fecha y franja horaria.
-   * @param {Array} sessions - Array de sesiones de una actividad
-   * @returns {Object} Objeto con estructura: { "2026-02-01": { manana: [...], tarde: [...], noche: [...] } }
-   */
-  static groupSessionsByDateAndTimeSlot(sessions = []) {
-    if (!Array.isArray(sessions)) {
-      return {};
-    }
 
-    // Crear objeto para agrupar
-    const grouped = {};
-
-    // Agrupar sesiones por fecha
-    sessions.forEach(session => {
-      const date = session.date;
-      
-      if (!grouped[date]) {
-        grouped[date] = {
-          manana: [],
-          tarde: [],
-          noche: []
-        };
-      }
-
-      // Determinar franja horaria según la hora de inicio
-      /*const timeSlot = this.#getTimeSlotFromTime(session.startTime);
-      
-      grouped[date][timeSlot].push(session);*/
-    });
-
-    // Ordenar sesiones dentro de cada franja por hora
-    Object.keys(grouped).forEach(date => {
-      Object.keys(grouped[date]).forEach(slot => {
-        grouped[date][slot].sort((a, b) => {
-          return a.startTime.localeCompare(b.startTime);
-        });
-      });
-    });
-
-    return grouped;
-  }
-
-  /**
-   * Determina la franja horaria según la hora.
-   * @private
-   * @param {string} time - Hora en formato HH:mm
-   * @returns {string} 'manana', 'tarde' o 'noche'
-   */
-  static #getTimeSlotFromTime(time) {
-    const [hours] = time.split(':').map(Number);
-    
-    if (hours >= 6 && hours < 12) {
-      return 'manana';
-    } else if (hours >= 12 && hours < 20) {
-      return 'tarde';
-    } else {
-      return 'noche';
-    }
-  }
 
   /**
    * Obtiene el label de una franja horaria.

@@ -13,26 +13,18 @@ import { store } from '../store.js';
 export class CenterSearchComponent extends SearchComponent {
   constructor(router = null, params = {}) {
     super(router, params);
-    this.fixedCenterId = params.centerId || null;
-    this.isFixedCenter = true;  // Marcar filtro como fijo
+    this.centerId = params.centerId || null;
   }
 
   async render() {
-    // Pre-aplicar filtro de centro fijo antes de renderizar
-    // Los filtros de center/activity son arrays en el store
-    if (this.fixedCenterId) {
-      // Hacer ambos cambios en una sola actualización para consistencia
       const currentFilters = store.getState().filters;
       store.setState({
         filters: {
           ...currentFilters,
-          center: [this.fixedCenterId]
+          center: [this.centerId]
         },
-        fixedCenterFilterFromRoute: this.fixedCenterId
       });
-    }
-    
-    // Renderizar SearchComponent normalmente
+
     return super.render();
   }
 }

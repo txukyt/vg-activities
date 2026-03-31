@@ -13,26 +13,17 @@ import { store } from '../store.js';
 export class ProgramSearchComponent extends SearchComponent {
   constructor(router = null, params = {}) {
     super(router, params);
-    this.fixedProgramId = params.programId || null;
-    this.isFixedProgram = true;  // Marcar filtro como fijo
   }
 
   async render() {
-    // Pre-aplicar filtro de programa fijo antes de renderizar
-    // Los filtros de program son arrays en el store
-    if (this.fixedProgramId) {
-      // Hacer ambos cambios en una sola actualización para consistencia
       const currentFilters = store.getState().filters;
       store.setState({
         filters: {
           ...currentFilters,
-          program: [this.fixedProgramId]
+          program: [this.params.programId]
         },
-        fixedProgramFilterFromRoute: this.fixedProgramId
       });
-    }
-    
-    // Renderizar SearchComponent normalmente
+
     return super.render();
   }
 }

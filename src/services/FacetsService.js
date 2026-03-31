@@ -1,26 +1,3 @@
-/**
- * FacetsService.js
- * Servicio especializado en procesamiento de FACETAS del backend SOLR.
- *
- * RESPONSABILIDADES:
- * - Parsear respuestas SOLR en múltiples formatos
- * - Normalizar facetas a estructura consistente
- * - Transformar facetas normalizadas a opciones de UI (transformX* methods)
- * - Aplicar mapeos en valores según contexto (timeSlot, language, dayOfWeek)
- *
- * ARQUITECTURA:
- * Backend SOLR → parseFacetsFromBackend() → Store (almacena)
- *                                                ↓
- *                                    transformX* (crea opciones UI)
- *                                                ↓
- *                          FilterPanel.js (renderiza)
- *
- * NOTA: Este servicio es la ÚNICA fuente de verdad para interpretar
- * respuestas del backend y transformarlas a opciones de UI.
- */
-
-import { store } from '../store.js';
-
 export class FacetsService {
   /**
    * Parsea las facetas de la respuesta del backend SOLR.
@@ -54,27 +31,13 @@ export class FacetsService {
 
       let facetsArray = null;
 
-      // Formato 1: response.facets es array de { name, items } (NUEVO)
-      if (Array.isArray(solrResponse.facets)) {
-        facetsArray = solrResponse.facets;
-        console.log('[FacetsService] Detectado formato ARRAY de facetas. Count:', facetsArray.length);
-      }
-      // Formato 2: response.facets es objeto con tipos como llaves
-      else if (solrResponse.facets && typeof solrResponse.facets === 'object') {
+      if (solrResponse.facets && typeof solrResponse.facets === 'object') {
         // Convertir formato 2 a array para procesamiento unificado
         facetsArray = Object.entries(solrResponse.facets).map(([name, items]) => ({
           name,
           items: Array.isArray(items) ? items : [items]
         }));
         console.log('[FacetsService] Convertido formato OBJETO a array. Count:', facetsArray.length);
-      }
-      // Formato 3: response.facets_counts (formato Solr legacy)
-      else if (solrResponse.facets_counts) {
-        facetsArray = Object.entries(solrResponse.facets_counts).map(([name, items]) => ({
-          name,
-          items: Array.isArray(items) ? items : [items]
-        }));
-        console.log('[FacetsService] Detectado formato facets_counts. Count:', facetsArray.length);
       }
       // No hay facetas
       else {
@@ -154,10 +117,12 @@ export class FacetsService {
         // Extraer value y count de múltiples formatos posibles
         const value = item.value || item.id || item.val || String(item);
         const count = item.count || item.cnt || 0;
+        const name = item.name;
 
         return {
           value: String(value).trim(),
-          count: Math.max(0, parseInt(count, 10) || 0)
+          count: Math.max(0, parseInt(count, 10) || 0),
+          name: String(name).trim()
         };
       })
       .filter(item => item !== null && item.count > 0)  // Solo items con count > 0
@@ -352,48 +317,23 @@ export class FacetsService {
 
    /**
     * Transforma facetas de actividades a formato {id, name} para UI.
-    * Busca los nombres de actividades en el store por ID.
-    * Si no encuentra nombre, usa el ID como fallback.
-    * @param {Array} activityFacets - Facetas de actividades del store
+    * Usa directamente el nombre que viene en la faceta del backend.
+    * @param {Array} activityFacets - Facetas de actividades del store (con name incluido)
     * @returns {Array} Array de objetos {id, name}
     */
    static transformActivityFacetsToOptions(activityFacets) {
      if (!Array.isArray(activityFacets)) return [];
      
-     const activities = store.getActivities();
-     const activitiesMap = new Map();
-     
-     // Crear un mapa de actividades por id para búsqueda rápida
-     if (Array.isArray(activities)) {
-       activities.forEach(activity => {
-         if (activity && activity.id) {
-           // Convertir a string para comparar con valor de faceta (que es string)
-           activitiesMap.set(String(activity.id), activity.title || activity.name || String(activity.id));
-         }
-       });
-     }
-     
      const transformed = activityFacets
-       .map(facet => {
-         const activityId = facet.value?.toUpperCase() || facet.id;
-         let name = facet.name || '';
-         
-         // Si no hay name en la faceta, buscar en el store
-         if (!name && activitiesMap.has(String(activityId))) {
-           name = activitiesMap.get(String(activityId));
-         }
-         
-         return {
-           id: activityId,
-           name: name || String(activityId)
-         };
-       })
+       .map(facet => ({
+         id: facet.value?.toUpperCase() || facet.id,
+         name: facet.name || String(facet.value || facet.id)
+       }))
        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
      
      console.log('[FacetsService] transformActivityFacetsToOptions:', {
        inputCount: activityFacets.length,
        outputCount: transformed.length,
-       mappedActivities: activitiesMap.size,
        sample: transformed.slice(0, 3)
      });
      
@@ -402,48 +342,23 @@ export class FacetsService {
 
    /**
     * Transforma facetas de programas a formato {id, name} para UI.
-    * Busca los nombres de programas en el store por ID.
-    * Si no encuentra nombre, usa el ID como fallback.
-    * @param {Array} programFacets - Facetas de programas del store
+    * Usa directamente el nombre que viene en la faceta del backend.
+    * @param {Array} programFacets - Facetas de programas del store (con name incluido)
     * @returns {Array} Array de objetos {id, name}
     */
    static transformProgramFacetsToOptions(programFacets) {
      if (!Array.isArray(programFacets)) return [];
      
-     const programs = store.getPrograms();
-     const programsMap = new Map();
-     
-     // Crear un mapa de programas por id para búsqueda rápida
-     if (Array.isArray(programs)) {
-       programs.forEach(program => {
-         if (program && program.id) {
-           // Convertir a string para comparar con valor de faceta (que es string)
-           programsMap.set(String(program.id), program.title || program.name || String(program.id));
-         }
-       });
-     }
-     
-     const transformed = programFacets  
-       .map(facet => {
-         const programId = facet.value?.toUpperCase() || facet.id;
-         let name = facet.name || '';
-         
-         // Si no hay name en la faceta, buscar en el store
-         if (!name && programsMap.has(String(programId))) {
-           name = programsMap.get(String(programId));
-         }
-         
-         return {
-           id: programId,
-           name: name || String(programId)
-         };
-       })
+     const transformed = programFacets
+       .map(facet => ({
+         id: facet.value?.toUpperCase() || facet.id,
+         name: facet.name || String(facet.value || facet.id)
+       }))
        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
      
      console.log('[FacetsService] transformProgramFacetsToOptions:', {
        inputCount: programFacets.length,
        outputCount: transformed.length,
-       mappedPrograms: programsMap.size,
        sample: transformed.slice(0, 3)
      });
      
@@ -452,50 +367,23 @@ export class FacetsService {
 
    /**
     * Transforma facetas de centros a formato {id, name} para UI.
-    * Si no viene name en la faceta, busca el nombre del centro en el store.
-    * Maneja conversión de tipos de datos (string ↔ número) para asegurar mapeo correcto.
-    * @param {Array} centerFacets - Facetas de centros del store
+    * Usa directamente el nombre que viene en la faceta del backend.
+    * @param {Array} centerFacets - Facetas de centros del store (con name incluido)
     * @returns {Array} Array de objetos {id, name}
     */
    static transformCenterFacetsToOptions(centerFacets) {
      if (!Array.isArray(centerFacets)) return [];
      
-     const centers = store.getCenters();
-     const centersMap = new Map();
-     
-     // Crear un mapa de centros por id para búsqueda rápida
-     // Convertir a string para búsqueda consistente
-     if (Array.isArray(centers)) {
-       centers.forEach(center => {
-         if (center && center.id) {
-           const centerId = String(center.id);
-           centersMap.set(centerId, center.name || center.id);
-         }
-       });
-     }
-     
      const transformed = centerFacets
-       .map(facet => {
-         const centerId = facet.value || facet.id;
-         let name = facet.name || '';
-         
-         // Si no hay name en la faceta, buscar en el store (convertir a string para comparación)
-         const centerIdStr = String(centerId);
-         if (!name && centersMap.has(centerIdStr)) {
-           name = centersMap.get(centerIdStr);
-         }
-         
-         return {
-           id: centerId,
-           name: name || String(centerId)
-         };
-       })
+       .map(facet => ({
+         id: facet.value || facet.id,
+         name: facet.name || String(facet.value || facet.id)
+       }))
        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
      
      console.log('[FacetsService] transformCenterFacetsToOptions:', {
        inputCount: centerFacets.length,
        outputCount: transformed.length,
-       mappedCenters: centersMap.size,
        sample: transformed.slice(0, 3)
      });
      
@@ -503,47 +391,53 @@ export class FacetsService {
    }
 
    /**
-    * Transforma facetas de días a lista de días.
+    * Transforma facetas de días a formato {id, name} para UI.
+    * Usa normalizeFacetValue() para obtener el nombre completo del día.
     * @param {Array} dayFacets - Facetas de días del store
-    * @returns {Array} Array de días
+    * @returns {Array} Array de objetos {id, name}
     */
    static transformDayOfWeekFacetsToOptions(dayFacets) {
      if (!Array.isArray(dayFacets)) return [];
      
      return dayFacets
-       .map(facet => facet.value)
-       .sort();
+       .map(facet => ({
+         id: facet.value,
+         name: facet.name || this.normalizeFacetValue('dayOfWeek', facet.value)
+       }))
+       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
    }
 
    /**
-    * Transforma facetas de horarios a opciones normalizadas.
+    * Transforma facetas de horarios a formato {id, name} para UI.
+    * Usa normalizeFacetValue() para obtener el nombre normalizado del horario.
     * @param {Array} timeSlotFacets - Facetas de horarios del store
-    * @returns {Array} Array de horarios normalizados (ej: 'Mañana', 'Tarde')
+    * @returns {Array} Array de objetos {id, name}
     */
    static transformTimeSlotFacetsToOptions(timeSlotFacets) {
      if (!Array.isArray(timeSlotFacets)) return [];
      
-     const slotMap = {
-       'manana': 'Mañana',
-       'tarde': 'Tarde',
-       'manana_y_tarde': 'Mañana y Tarde'
-     };
-     
      return timeSlotFacets
-       .map(facet => slotMap[facet.value] || facet.value)
-       .sort();
+       .map(facet => ({
+         id: facet.value,
+         name: facet.name || this.normalizeFacetValue('timeSlot', facet.value)
+       }))
+       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
    }
 
    /**
-    * Transforma facetas de idiomas a opciones normalizadas.
+    * Transforma facetas de idiomas a formato {id, name} para UI.
+    * Usa normalizeFacetValue() para obtener el nombre normalizado del idioma.
     * @param {Array} languageFacets - Facetas de idiomas del store
-    * @returns {Array} Array de idiomas
+    * @returns {Array} Array de objetos {id, name}
     */
    static transformLanguageFacetsToOptions(languageFacets) {
      if (!Array.isArray(languageFacets)) return [];
      
      return languageFacets
-       .map(facet => facet.value)
-       .sort();
+       .map(facet => ({
+         id: facet.value,
+         name: facet.name || this.normalizeFacetValue('language', facet.value)
+       }))
+       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
    }
  }
