@@ -1,11 +1,5 @@
-/**
- * SelectedFiltersBar.js
- * Componente que muestra todos los filtros seleccionados como chips removibles.
- * Ubicado entre el formulario de búsqueda y los resultados.
- */
-
-import { store } from '../store.js';
-import { FilterService } from '../services/FilterService.js';
+import { store } from '@/store.js';
+import { FilterService } from '@/services/FilterService.js';
 
 export class SelectedFiltersBar {
   constructor(onFilterChange, filterPanel = null) {
@@ -14,6 +8,7 @@ export class SelectedFiltersBar {
     this.activities = [];
     this.centers = [];
     this.programs = [];
+    this.facets = null;
     this.element = null;
   }
 
@@ -22,10 +17,11 @@ export class SelectedFiltersBar {
    * @returns {HTMLElement} Elemento de la barra
    */
   async render() {
-    // Obtener actividades y centros del store para mapear IDs a nombres
+    // Obtener actividades, centros y facetas del store
     this.activities = store.getActivities();
     this.centers = store.getCenters();
     this.programs = store.getPrograms();
+    this.facets = store.getFacets();
 
     const container = document.createElement('div');
     container.className = 'selected-filters-bar';
@@ -94,10 +90,19 @@ export class SelectedFiltersBar {
 
     // Centro
     if (filters.center && filters.center.length > 0) {
-      // Crear mapa de IDs a nombres desde this.centers (del store)
-      const centerMap = new Map(
-        this.centers.map(c => [c.id, c.name])
-      );
+      // Crear mapa de IDs a nombres desde facetas
+      const centerMap = new Map();
+      if (this.facets && this.facets.center) {
+        this.facets.center.forEach(facet => {
+          centerMap.set(facet.value, facet.name || facet.value);
+        });
+      }
+      // Fallback a store.centers si no hay facetas
+      if (centerMap.size === 0 && this.centers.length > 0) {
+        this.centers.forEach(c => {
+          centerMap.set(c.id, c.name);
+        });
+      }
       filters.center.forEach(centerId => {
         selected.push({
           type: 'center',
@@ -110,10 +115,19 @@ export class SelectedFiltersBar {
 
     // Programa
     if (filters.program && filters.program.length > 0) {
-      // Crear mapa de IDs a nombres usando FilterService
-      const programMap = new Map(
-        FilterService.getProgramNames(this.programs).map(p => [p.id, p.name])
-      );
+      // Crear mapa de IDs a nombres desde facetas
+      const programMap = new Map();
+      if (this.facets && this.facets.program) {
+        this.facets.program.forEach(facet => {
+          programMap.set(facet.value, facet.name || facet.value);
+        });
+      }
+      // Fallback a store.programs si no hay facetas
+      if (programMap.size === 0 && this.programs.length > 0) {
+        this.programs.forEach(p => {
+          programMap.set(p.id, p.name);
+        });
+      }
       filters.program.forEach(programId => {
         selected.push({
           type: 'program',
@@ -126,10 +140,19 @@ export class SelectedFiltersBar {
 
     // Actividad
     if (filters.activity && filters.activity.length > 0) {
-      // Crear mapa de IDs a nombres usando FilterService
-      const activityMap = new Map(
-        FilterService.getActivityNames(this.activities).map(a => [a.id, a.name])
-      );
+      // Crear mapa de IDs a nombres desde facetas (la fuente única de la verdad)
+      const activityMap = new Map();
+      if (this.facets && this.facets.activity) {
+        this.facets.activity.forEach(facet => {
+          activityMap.set(facet.value, facet.name || facet.value);
+        });
+      }
+      // Fallback a store.activities si no hay facetas
+      if (activityMap.size === 0 && this.activities.length > 0) {
+        this.activities.forEach(a => {
+          activityMap.set(a.id, a.name);
+        });
+      }
       filters.activity.forEach(activityId => {
         selected.push({
           type: 'activity',
@@ -142,36 +165,57 @@ export class SelectedFiltersBar {
 
     // Día de la Semana
     if (filters.dayOfWeek && filters.dayOfWeek.length > 0) {
+      // Crear mapa de IDs a nombres desde facetas
+      const dayMap = new Map();
+      if (this.facets && this.facets.dayOfWeek) {
+        this.facets.dayOfWeek.forEach(facet => {
+          dayMap.set(facet.value, facet.name || facet.value);
+        });
+      }
       filters.dayOfWeek.forEach(day => {
         selected.push({
           type: 'dayOfWeek',
           typeLabel: 'Día',
           value: day,
-          label: day.charAt(0).toUpperCase() + day.slice(1)
+          label: dayMap.get(day) || (day.charAt(0).toUpperCase() + day.slice(1))
         });
       });
     }
 
     // Horario
     if (filters.timeSlot && filters.timeSlot.length > 0) {
+      // Crear mapa de IDs a nombres desde facetas
+      const timeSlotMap = new Map();
+      if (this.facets && this.facets.schedule) {
+        this.facets.schedule.forEach(facet => {
+          timeSlotMap.set(facet.value, facet.name || facet.value);
+        });
+      }
       filters.timeSlot.forEach(slot => {
         selected.push({
           type: 'timeSlot',
           typeLabel: 'Horario',
           value: slot,
-          label: slot
+          label: timeSlotMap.get(slot) || slot
         });
       });
     }
 
     // Idioma
     if (filters.language && filters.language.length > 0) {
+      // Crear mapa de IDs a nombres desde facetas
+      const languageMap = new Map();
+      if (this.facets && this.facets.language) {
+        this.facets.language.forEach(facet => {
+          languageMap.set(facet.value, facet.name || facet.value);
+        });
+      }
       filters.language.forEach(lang => {
         selected.push({
           type: 'language',
           typeLabel: 'Idioma',
           value: lang,
-          label: lang
+          label: languageMap.get(lang) || lang
         });
       });
     }
@@ -253,8 +297,11 @@ export class SelectedFiltersBar {
 
   /**
    * Actualiza la barra cuando cambian los filtros.
+   * Obtiene las facetas actualizadas del store antes de renderizar.
    */
   update() {
+    // Obtener facetas actualizadas del store
+    this.facets = store.getFacets();
     this.#renderContent();
   }
 }

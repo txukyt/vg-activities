@@ -4,13 +4,13 @@
  * Inicializa el router, registra las páginas y monta la aplicación.
  */
 
-import { Router } from './router.js';
-import { SearchComponent } from './components/SearchComponent.js';
-import { CenterSearchComponent } from './components/CenterSearchComponent.js';
-import { ActivitySearchComponent } from './components/ActivitySearchComponent.js';
-import { ProgramSearchComponent } from './components/ProgramSearchComponent.js';
-import { DetailComponent } from './components/DetailComponent.js';
-import { SessionDetailComponent } from './components/SessionDetailComponent.js';
+import { Router } from '@/router.js';
+import { SearchComponent } from '@/components/SearchComponent.js';
+import { CenterSearchComponent } from '@/components/CenterSearchComponent.js';
+import { ActivitySearchComponent } from '@/components/ActivitySearchComponent.js';
+import { ProgramSearchComponent } from '@/components/ProgramSearchComponent.js';
+import { DetailComponent } from '@/components/DetailComponent.js';
+import { SessionDetailComponent } from '@/components/SessionDetailComponent.js';
 
 /**
  * Inicializa la aplicación SPA.

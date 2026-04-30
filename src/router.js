@@ -4,14 +4,15 @@
  * Soporta popstate para conservar resultados y scroll al volver.
  */
 
-import { store } from './store.js';
-import { BASE_PATH } from './config.js';
+import { store } from '@/store.js';
+import { BASE_PATH } from '@/config.js';
 
 export class Router {
   constructor(appElement) {
     this.appElement = appElement;
     this.routes = new Map();
     this.currentRoute = null;
+    this.currentComponent = null;
 
     this.#setupEventListeners();
   }
@@ -102,6 +103,14 @@ export class Router {
       return;
     }
 
+    // CRÍTICO: Destruir el componente anterior antes de crear uno nuevo
+    // Esto asegura que se desuscriba del store y limpie recursos
+    if (this.currentComponent && typeof this.currentComponent.destroy === 'function') {
+      console.log(`[Router] Destruyendo componente anterior (${this.currentRoute})`);
+      this.currentComponent.destroy();
+      this.currentComponent = null;
+    }
+
     // Limpiar contenedor
     this.appElement.innerHTML = '';
 
@@ -112,6 +121,8 @@ export class Router {
     // Verificar que element es un nodo válido
     if (element instanceof Node) {
       this.appElement.appendChild(element);
+      // CRÍTICO: Guardar referencia al componente actual para destruirlo después
+      this.currentComponent = component;
     } else {
       console.error('El componente no retornó un Node válido');
     }

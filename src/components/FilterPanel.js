@@ -4,9 +4,9 @@
  * Incluye 5 filtros: Actividad, Centro, Día Semana, Horario, Idioma.
  */
 
-import { store } from '../store.js';
-import { FacetsService } from '../services/FacetsService.js';
-import { FilterItem } from './FilterItem.js';
+import { store } from '@/store.js';
+import { FacetsService } from '@/services/FacetsService.js';
+import { FilterItem } from '@/components/FilterItem.js';
 
 export class FilterPanel {
   constructor(onFilterChange) {

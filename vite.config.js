@@ -42,7 +42,12 @@ export default defineConfig(({ command }) => {
           drop_console: false, // Limpia los console.log en el build de Java
         },
       },
-    }
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
   };
 
   // 2. MODO DESARROLLO (npm run dev)

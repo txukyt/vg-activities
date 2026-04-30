@@ -4,7 +4,7 @@
  * Centraliza el estado de la aplicación.
  */
 
-import { FilterService } from './services/FilterService.js';
+import { FilterService } from '@/services/FilterService.js';
 
 class Store {
     constructor() {

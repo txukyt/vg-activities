@@ -4,8 +4,8 @@
  * Incluye caja de búsqueda interna y opciones seleccionables.
  */
 
-import { store } from '../store.js';
-import { FilterService } from '../services/FilterService.js';
+import { store } from '@/store.js';
+import { FilterService } from '@/services/FilterService.js';
 
 export class FilterItem {
   /**

@@ -1,8 +1,3 @@
-/**
- * ScheduleService.js
- * Servicio para agrupar y transformar sesiones por fecha y franja horaria.
- */
-
 export class ScheduleService {
   /**
    * Define los rangos de tiempo para cada franja horaria.

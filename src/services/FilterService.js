@@ -1,22 +1,3 @@
-/**
- * FilterService.js
- * Servicio especializado en extracción y transformación de DATOS CRUDOS para filtros.
- * 
- * RESPONSABILIDADES:
- * - Extraer opciones de filtros directamente del array de actividades (fallback)
- * - Manipulación y filtrado de opciones
- * - Validación de reglas de negocio
- * - Métodos de configuración e inicialización
- * 
- * ARQUITECTURA:
- * FacetsService (backend SOLR) → Store → FacetsService (transforma) → FilterPanel
- *                                  ↓
- *                        FilterService (fallback)
- * 
- * NOTA: Los métodos que transforman facetas normalizadas (*FromFacets) han sido 
- * movidos a FacetsService.transformX* para mantener una arquitectura clara.
- */
-
 export class FilterService {
    /**
      * Obtiene datos iniciales de la aplicación: centros, actividades y timestamp del servidor.

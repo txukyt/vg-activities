@@ -1,11 +1,3 @@
-/**
- * ResultsRenderer.js
- * Componente responsable de renderizar los resultados de búsqueda.
- * - Sabe iterar sobre estructura agrupada por centro
- * - Sabe iterar sobre estructura de lista plana
- * Genera HTML semántico (headers de centro + listas)
- */
-
 export class ResultsRenderer {
   /**
    * Renderiza los resultados agrupados por centro.

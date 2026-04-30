@@ -1,11 +1,7 @@
-/**
- * SearchForm.js
- * Componente que renderiza el formulario de búsqueda (Sección A).
- * Incluye: búsqueda libre, checkbox plazas libres, edad.
- */
 
-import { store } from '../store.js';
-import { debounce } from '../utils/debounce.js';
+
+import { store } from '@/store.js';
+import { debounce } from '@/utils/debounce.js';
 
 export class SearchForm {
   constructor(onSearch) {

@@ -1,19 +1,6 @@
-/**
- * DetailComponent.js
- * Componente para mostrar los detalles completos de una actividad.
- * 
- * MEJORA v4: Backend-First Strategy
- * - PRIMERO: Mostrar indicador de carga inicial
- * - SEGUNDO: Llamar al backend para obtener datos de la actividad
- * - SI BACKEND DEVUELVE: Enriquecer con datos del centro y renderizar
- * - SI FALLA: Mostrar error al usuario
- * - NO CACHE: Ya no se usa cache como fuente principal de datos
- * - LINEAL: Flujo secuencial y predecible para mejor UX
- */
-
-import { store } from '../store.js';
-import { SearchService } from '../services/SearchService.js';
-import { ScheduleGridComponent } from './ScheduleGridComponent.js';
+import { store } from '@/store.js';
+import { SearchService } from '@/services/SearchService.js';
+import { ScheduleGridComponent } from '@/components/ScheduleGridComponent.js';
 
 export class DetailComponent {
     constructor(router = null, params = {}) {
@@ -23,75 +10,56 @@ export class DetailComponent {
       this.activity = null;
     }
 
-  /**
-   * Renderiza el componente de detalle.
-   * FLUJO BACKEND-FIRST:
-   * 1. Mostrar indicador de carga inicial
-   * 2. Llamar al backend para obtener la actividad
-   * 3. Si backend devuelve → Enriquecer con datos del centro y renderizar
-   * 4. Si backend falla → Mostrar error al usuario
-   * 
-   * @returns {HTMLElement} Elemento del componente
-   */
   async render() {
     const container = document.createElement('div');
     container.className = 'detail-component';
 
     try {
-      // PASO 1: Mostrar indicador de carga inicial
-      console.log('[DetailComponent] Iniciando renderizado (Backend-First)', {
+      console.log('[DetailComponent] Iniciando renderizado con Skeleton Loading', {
         activityId: this.activityId
       });
       
-      this.#showInitialLoadingIndicator(container);
+      // PASO 1: Mostrar SKELETON inmediatamente (estructura visual sin datos)
+      const skeletonElement = this.#createSkeletonLoading();
+      container.appendChild(this.#createHeader());
+      container.appendChild(skeletonElement);
 
-      // PASO 2: Obtener actividad del backend
-      const backendActivity = await this.#loadActivityFromBackend();
+      // PASO 2: Obtener actividad del backend EN PARALELO (no bloqueante)
+      this.#loadActivityFromBackend()
+        .then((backendActivity) => {
+          if (backendActivity) {
+            // ===== ÉXITO: Backend devolvió la actividad =====
+            console.log('[DetailComponent] Actividad obtenida del backend', {
+              activityId: this.activityId,
+              title: backendActivity.name,
+              sessionsCount: backendActivity.sessions?.length || 0
+            });
 
-      if (backendActivity) {
-        // ===== ÉXITO: Backend devolvió la actividad =====
-        console.log('[DetailComponent] Actividad obtenida del backend', {
-          activityId: this.activityId,
-          title: backendActivity.name,
-          sessionsCount: backendActivity.sessions?.length || 0
+            this.activity = backendActivity;
+            store.setCurrentActivity(this.activity);
+
+            // Reemplazar skeleton con contenido real
+            this.#replaceSkeletonWithContent(container, skeletonElement);
+
+            // Restaurar scroll al inicio del componente
+            this.#resetScroll();
+
+          } else {
+            // ===== ERROR: Backend no devolvió la actividad =====
+            console.error('[DetailComponent] No se encontró actividad en backend', {
+              activityId: this.activityId
+            });
+
+            this.#replaceSkeletonWithError(container, skeletonElement, 'Actividad no encontrada');
+          }
+        })
+        .catch((error) => {
+          console.error('[DetailComponent] Error obteniendo actividad:', error);
+          this.#replaceSkeletonWithError(container, skeletonElement, 'Error al cargar la actividad');
         });
-
-        this.activity = backendActivity;
-        store.setCurrentActivity(this.activity);
-
-        // Ocultar indicador de carga
-        this.#hideInitialLoadingIndicator(container);
-
-        // Renderizar con datos del backend
-        const header = this.#createHeader();
-        container.appendChild(header);
-
-        const content = this.#createContent();
-        container.appendChild(content);
-
-        // Restaurar scroll al inicio del componente
-        this.#resetScroll();
-
-      } else {
-        // ===== ERROR: Backend no devolvió la actividad =====
-        console.error('[DetailComponent] No se encontró actividad en backend', {
-          activityId: this.activityId
-        });
-
-        this.#hideInitialLoadingIndicator(container);
-
-        container.innerHTML = `
-          <div class="error">
-            <p>Actividad no encontrada</p>
-            <button class="btn btn-primary" onclick="window.history.back()">Volver</button>
-          </div>
-        `;
-      }
 
     } catch (error) {
-      console.error('[DetailComponent] Error renderizando actividad:', error);
-      this.#hideInitialLoadingIndicator(container);
-
+      console.error('[DetailComponent] Error renderizando componente:', error);
       container.innerHTML = `
         <div class="error">
           <p>Error al cargar la actividad</p>
@@ -231,18 +199,120 @@ export class DetailComponent {
     return div.innerHTML;
   }
 
-    /**
-     * Obtiene una actividad del backend.
-     * FLUJO Backend-First:
-     * 1. SearchService.getActivityById() consulta SolrGateway.searchDetail()
-     * 2. SolrGateway envía petición POST al backend SOLR
-     * 3. Backend devuelve { activity, sessions }
-     * 4. SearchService enriquece la actividad con datos del centro
-     * 5. DetailComponent recibe actividad lista para renderizar
-     *
-     * @private
-     * @returns {Promise<Object|null>} Actividad enriquecida o null si falla
-     */
+     /**
+      * Crea el skeleton loading (estructura visual sin datos reales).
+      * Se muestra INMEDIATAMENTE para dar feedback visual al usuario.
+      * Simula la estructura final: header, título, badge, descripción, grid de horarios.
+      * @private
+      * @returns {HTMLElement} Elemento del skeleton
+      */
+     #createSkeletonLoading() {
+       const skeleton = document.createElement('article');
+       skeleton.className = 'detail-content detail-skeleton';
+
+       const wrapper = document.createElement('div');
+       wrapper.className = 'detail-wrapper';
+
+       // Info skeleton
+       const infoDiv = document.createElement('div');
+       infoDiv.className = 'detail-info';
+
+       // Skeleton de título
+       const titleSkeleton = document.createElement('div');
+       titleSkeleton.className = 'skeleton skeleton-title';
+       infoDiv.appendChild(titleSkeleton);
+
+       // Skeleton de badge
+       const badgeSkeleton = document.createElement('div');
+       badgeSkeleton.className = 'skeleton skeleton-badge';
+       infoDiv.appendChild(badgeSkeleton);
+
+       // Skeleton de descripción (3 líneas)
+       const descSkeleton = document.createElement('div');
+       descSkeleton.className = 'skeleton-description';
+       for (let i = 0; i < 3; i++) {
+         const line = document.createElement('div');
+         line.className = 'skeleton skeleton-text';
+         if (i === 2) line.style.width = '60%'; // Última línea más corta
+         descSkeleton.appendChild(line);
+       }
+       infoDiv.appendChild(descSkeleton);
+
+       wrapper.appendChild(infoDiv);
+
+       // Skeleton de grid de horarios
+       const scheduleSkeletonDiv = document.createElement('div');
+       scheduleSkeletonDiv.className = 'schedule-skeleton';
+
+       // Grid con 6 items de skeleton
+       const skeletonGrid = document.createElement('div');
+       skeletonGrid.className = 'skeleton-grid';
+       for (let i = 0; i < 6; i++) {
+         const skeletonItem = document.createElement('div');
+         skeletonItem.className = 'skeleton-item';
+         skeletonItem.innerHTML = `
+           <div class="skeleton skeleton-schedule-date"></div>
+           <div class="skeleton skeleton-schedule-time"></div>
+           <div class="skeleton skeleton-schedule-status" style="width: 70%;"></div>
+         `;
+         skeletonGrid.appendChild(skeletonItem);
+       }
+       scheduleSkeletonDiv.appendChild(skeletonGrid);
+       wrapper.appendChild(scheduleSkeletonDiv);
+
+       skeleton.appendChild(wrapper);
+       return skeleton;
+     }
+
+     /**
+      * Reemplaza el skeleton con el contenido real con transición suave.
+      * @private
+      * @param {HTMLElement} container - Contenedor principal
+      * @param {HTMLElement} skeletonElement - Elemento skeleton a reemplazar
+      */
+     #replaceSkeletonWithContent(container, skeletonElement) {
+       const contentElement = this.#createContent();
+       
+       // Transición: fade out skeleton
+       skeletonElement.style.opacity = '1';
+       skeletonElement.style.transition = 'opacity 0.3s ease-out';
+       
+       setTimeout(() => {
+         skeletonElement.style.opacity = '0';
+         
+         setTimeout(() => {
+           skeletonElement.replaceWith(contentElement);
+         }, 300);
+       }, 100);
+     }
+
+     /**
+      * Reemplaza el skeleton con un mensaje de error.
+      * @private
+      * @param {HTMLElement} container - Contenedor principal
+      * @param {HTMLElement} skeletonElement - Elemento skeleton a reemplazar
+      * @param {string} errorMessage - Mensaje de error a mostrar
+      */
+     #replaceSkeletonWithError(container, skeletonElement, errorMessage) {
+       const errorElement = document.createElement('div');
+       errorElement.className = 'error';
+       errorElement.innerHTML = `
+         <p>${this.#escapeHtml(errorMessage)}</p>
+         <button class="btn btn-primary" onclick="window.history.back()">Volver</button>
+       `;
+
+       skeletonElement.style.opacity = '1';
+       skeletonElement.style.transition = 'opacity 0.3s ease-out';
+       
+       setTimeout(() => {
+         skeletonElement.style.opacity = '0';
+         
+         setTimeout(() => {
+           skeletonElement.replaceWith(errorElement);
+         }, 300);
+       }, 100);
+     }
+
     async #loadActivityFromBackend() {
       try {
         console.log('[DetailComponent] Iniciando carga de actividad desde backend', {
@@ -289,48 +359,17 @@ export class DetailComponent {
       }
     }
     
-    /**
-     * Muestra un indicador visual de "cargando actividad".
-     * Se muestra mientras se intenta cargar del backend en el flujo Backend-First.
-     * 
-     * @private
-     * @param {HTMLElement} container - Contenedor del componente
-     */
-    #showInitialLoadingIndicator(container) {
-     // No mostrar si ya existe
-     if (container.querySelector('.initial-loading-indicator')) {
-       return;
-     }
 
-     const indicator = document.createElement('div');
-     indicator.className = 'initial-loading-indicator';
-     indicator.innerHTML = `
-       <div class="loading-spinner"></div>
-       <p class="loading-text">Cargando actividad...</p>
-     `;
-
-     container.appendChild(indicator);
-   }
 
    /**
-    * Oculta el indicador inicial de "cargando actividad".
-    * @private
-    * @param {HTMLElement} container - Contenedor del componente
+    * Desuscribirse y limpiar recursos.
+    * Se llama desde router.js cuando se navega a otra ruta.
+    * DetailComponent no tiene suscripciones activas actualmente,
+    * pero este método aquí sirve como placeholder para consistencia.
+    * @public
     */
-   #hideInitialLoadingIndicator(container) {
-     const indicator = container.querySelector('.initial-loading-indicator');
-     if (indicator) {
-       // Transición suave de salida
-       indicator.style.opacity = '0';
-       indicator.style.transition = 'opacity 0.3s ease-out';
-       
-       setTimeout(() => {
-         if (indicator.parentElement) {
-           indicator.remove();
-         }
-       }, 300);
-     }
+   destroy() {
+     console.log('[DetailComponent] 🗑️ Destruyendo componente');
    }
-
 
 }

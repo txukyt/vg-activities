@@ -1,11 +1,6 @@
-/**
- * SessionDetailComponent.js
- * Componente para mostrar los detalles de una sesión específica de una actividad.
- */
-
-import { store } from '../store.js';
-import { SearchService } from '../services/SearchService.js';
-import { ScheduleService } from '../services/ScheduleService.js';
+import { store } from '@/store.js';
+import { SearchService } from '@/services/SearchService.js';
+import { ScheduleService } from '@/services/ScheduleService.js';
 
 export class SessionDetailComponent {
   constructor(router = null, params = {}) {
@@ -436,6 +431,19 @@ export class SessionDetailComponent {
       });
       return null;
     }
+  }
+
+  /**
+   * Desuscribirse y limpiar recursos.
+   * Se llama desde router.js cuando se navega a otra ruta.
+   * SessionDetailComponent no tiene suscripciones activas actualmente,
+   * pero este método aquí sirve como placeholder para consistencia.
+   * @public
+   */
+  destroy() {
+    console.log('[SessionDetailComponent] 🗑️ Destruyendo componente');
+    // No hay suscripciones activas en SessionDetailComponent actualmente
+    // Pero mantener este método para consistencia de patrón
   }
 
 }

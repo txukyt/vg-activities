@@ -1,10 +1,5 @@
-/**
- * ScheduleGridComponent.js
- * Componente para mostrar un grid de horarios agrupados por fecha y franja horaria.
- */
-
-import { store } from '../store.js';
-import { ScheduleService } from '../services/ScheduleService.js';
+import { store } from '@/store.js';
+import { ScheduleService } from '@/services/ScheduleService.js';
 
 export class ScheduleGridComponent {
    constructor(sessions = [], onSessionClick = null) {

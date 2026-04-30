@@ -1,12 +1,3 @@
-/**
- * SolrGateway.js
- * Gateway para comunicación con el backend SOLR en /m01-10s/api/search.do
- * Abstrae las llamadas HTTP y proporciona métodos para búsqueda con filtros.
- * 
- * NOTA: Esta clase es agnóstica al formato exacto de la respuesta SOLR.
- * Cuando el contrato backend esté definido, adaptar según estructura real.
- */
-
 export class SolrGateway {
   /**
    * URL base del backend SOLR

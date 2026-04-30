@@ -7,9 +7,9 @@
  * Patrón: Service Layer + Repository Pattern
  */
 
-import { SolrGateway } from './SolrGateway.js';
-import { FacetsService } from './FacetsService.js';
-import { store } from '../store.js';
+import { SolrGateway } from '@/services/SolrGateway.js';
+import { FacetsService } from '@/services/FacetsService.js';
+import { store } from '@/store.js';
 
 export class SearchService {
    /**

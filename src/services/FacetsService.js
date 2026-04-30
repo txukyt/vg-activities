@@ -1,24 +1,6 @@
 export class FacetsService {
   /**
    * Parsea las facetas de la respuesta del backend SOLR.
-   * Soporta múltiples formatos posibles del backend.
-   * 
-   * Formato 1 (Array con name/items):
-   * [
-   *   { name: "activity", items: [{ id: "1", count: 105 }, ...] },
-   *   { name: "center", items: [{ id: "bizan", count: 33 }, ...] },
-   *   ...
-   * ]
-   * 
-   * Formato 2 (Mapa con facetas):
-   * {
-   *   facets: {
-   *     activity: [{value: 'Yoga', count: 25}, ...],
-   *     center: [{value: 'bizan', count: 30}, ...],
-   *     ...
-   *   }
-   * }
-   * 
    * @param {Object} solrResponse - Respuesta completa del backend SOLR
    * @returns {Object|null} Facetas normalizadas a formato { activity: [...], center: [...] } o null
    */

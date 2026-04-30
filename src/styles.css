@@ -331,8 +331,6 @@
 
 .detail-content {
   background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -1601,22 +1599,119 @@
     width: 100%;
   }
 
-  .schedule-availability-indicator {
-    width: 100%;
-    padding: 0.4rem;
-    font-size: 0.8rem;
-  }
+   .schedule-availability-indicator {
+     width: 100%;
+     padding: 0.4rem;
+     font-size: 0.8rem;
+   }
+ 
+    .schedule-btn {
+      width: 100%;
+      padding: 0.6rem;
+     }
+   }
+ }
 
-  .schedule-btn {
-    width: 100%;
-    padding: 0.6rem;
-    margin-top: 0.3rem;
-    font-size: 0.8rem;
-  }
+/* ===========================*/
+/* SKELETON LOADING */
+/* ============================*/
+.detail-skeleton {
+  animation: fadeInSkeleton 0.3s ease-in-out;
+}
 
-  .spots-text {
-    font-size: 0.75rem;
+@keyframes fadeInSkeleton {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Elementos skeleton base */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.4rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton del título */
+.skeleton-title {
+  height: 2.5rem;
+  width: 70%;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* Skeleton del badge */
+.skeleton-badge {
+  height: 1.8rem;
+  width: 150px;
+  display: inline-block;
+  margin-bottom: 1rem;
+  border-radius: 20px;
+}
+
+/* Skeleton de descripción (múltiples líneas) */
+.skeleton-description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.skeleton-text {
+  height: 1rem;
+  width: 100%;
+  border-radius: 0.4rem;
+}
+
+/* Grid de skeleton de horarios */
+.schedule-skeleton {
+  margin-top: 2rem;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.skeleton-item {
+  padding: 1rem;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-schedule-date {
+  height: 1.2rem;
+  width: 80%;
+  border-radius: 0.4rem;
+}
+
+.skeleton-schedule-time {
+  height: 1rem;
+  width: 60%;
+  border-radius: 0.4rem;
+}
+
+.skeleton-schedule-status {
+  height: 1rem;
+  border-radius: 0.4rem;
 }
 
 /* ===========================*/

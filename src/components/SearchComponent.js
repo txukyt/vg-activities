@@ -1,16 +1,9 @@
-/**
- * SearchComponent.js
- * Componente de búsqueda y visualización de resultados.
- * Orquesta la búsqueda, obtiene datos del SearchService, actualiza el Store,
- * y renderiza resultados con ResultsRenderer.
- */
-
-import { store } from '../store.js';
-import { SearchService } from '../services/SearchService.js';
-import { ResultsRenderer } from './ResultsRenderer.js';
-import { SearchForm } from './SearchForm.js';
-import { FilterPanel } from './FilterPanel.js';
-import { SelectedFiltersBar } from './SelectedFiltersBar.js';
+import { store } from '@/store.js';
+import { SearchService } from '@/services/SearchService.js';
+import { ResultsRenderer } from '@/components/ResultsRenderer.js';
+import { SearchForm } from '@/components/SearchForm.js';
+import { FilterPanel } from '@/components/FilterPanel.js';
+import { SelectedFiltersBar } from '@/components/SelectedFiltersBar.js';
 
 export class SearchComponent {
    constructor(router = null, params = {}) {
@@ -496,6 +489,24 @@ export class SearchComponent {
     if (this.router) {
       await this.router.navigate('/center/:centerId/activity/:activityId', { centerId, activityId });
     }
+  }
+
+  /**
+   * Desuscribirse del store y limpiar recursos.
+   * Se llama desde router.js cuando se navega a otra ruta.
+   * @public
+   */
+  destroy() {
+    console.log('[SearchComponent] 🗑️ Destruyendo componente, desuscribiendo del store');
+    
+    // CRÍTICO: Desuscribirse del store
+    if (this.unsubscribe && typeof this.unsubscribe === 'function') {
+      this.unsubscribe();
+      this.unsubscribe = null;
+    }
+
+    // Notar: No es necesario limpiar el DOM porque el router ya lo hace
+    // Solo nos enfocamos en desuscripciones y referencias
   }
 
   /**
